@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.util.Arrays;
 import java.util.List;
@@ -18,33 +19,67 @@ public class RegisterController {
     @FXML private TextField emailField;
     @FXML private TextField phoneField;
     @FXML private ComboBox<String> roleComboBox;
+    
+    // Role-specific containers
+    @FXML private VBox roleSpecificSection;
+    @FXML private Label roleSpecificLabel;
+    @FXML private VBox touristFields;
+    @FXML private VBox guideFields;
+    
+    // Tourist fields
     @FXML private TextField nationalityField;
+    @FXML private Label nationalityLabel;
+    
+    // Guide fields
     @FXML private TextField languagesField;
     @FXML private TextField experienceField;
-    @FXML private Button registerButton;
-    @FXML private Button backButton;
-    @FXML private Label nationalityLabel;
     @FXML private Label languagesLabel;
     @FXML private Label experienceLabel;
+    
+    @FXML private Button registerButton;
+    @FXML private Button backButton;
     
     @FXML
     private void initialize() {
         roleComboBox.getItems().addAll("Tourist", "Guide");
         roleComboBox.setOnAction(e -> toggleRoleFields());
         updateLanguage();
+        
+        // Initially hide role-specific section
+        roleSpecificSection.setVisible(false);
+        roleSpecificSection.setManaged(false);
     }
     
     private void toggleRoleFields() {
         String selectedRole = roleComboBox.getValue();
+        
+        if (selectedRole == null) {
+            roleSpecificSection.setVisible(false);
+            roleSpecificSection.setManaged(false);
+            return;
+        }
+        
+        // Show the role-specific section
+        roleSpecificSection.setVisible(true);
+        roleSpecificSection.setManaged(true);
+        
         boolean isTourist = "Tourist".equals(selectedRole);
+        boolean isGuide = "Guide".equals(selectedRole);
         
-        nationalityField.setVisible(isTourist);
-        nationalityLabel.setVisible(isTourist);
+        // Show/hide tourist fields
+        touristFields.setVisible(isTourist);
+        touristFields.setManaged(isTourist);
         
-        languagesField.setVisible(!isTourist);
-        languagesLabel.setVisible(!isTourist);
-        experienceField.setVisible(!isTourist);
-        experienceLabel.setVisible(!isTourist);
+        // Show/hide guide fields
+        guideFields.setVisible(isGuide);
+        guideFields.setManaged(isGuide);
+        
+        // Update section label
+        if (isTourist) {
+            roleSpecificLabel.setText("Tourist Information");
+        } else if (isGuide) {
+            roleSpecificLabel.setText("Guide Information");
+        }
     }
     
     @FXML
@@ -75,22 +110,27 @@ public class RegisterController {
             } else if ("Guide".equals(role)) {
                 String languagesStr = languagesField.getText().trim();
                 int experience = Integer.parseInt(experienceField.getText().trim());
-                List<String> languages = Arrays.asList(languagesStr.split(",\\s*"));
+                
+                // Parse languages - handle comma separation properly
+                List<String> languages = Arrays.asList(languagesStr.split("\\s*,\\s*"));
                 
                 Guide guide = new Guide(username, password, fullName, email, phone, languages, experience);
                 FileHandler.saveGuide(guide);
             }
             
-            showAlert("Success", "Registration successful! You can now login.");
+            showAlert("Success", "Registration successful! You can now login with your credentials.");
             handleBack();
             
+        } catch (NumberFormatException e) {
+            showAlert("Error", "Please enter a valid number for experience years!");
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Error", "Registration failed! Please try again.");
+            showAlert("Error", "Registration failed! Please check all fields and try again.");
         }
     }
     
     private boolean validateFields() {
+        // Check basic required fields
         if (usernameField.getText().trim().isEmpty() ||
             passwordField.getText().trim().isEmpty() ||
             fullNameField.getText().trim().isEmpty() ||
@@ -102,21 +142,54 @@ public class RegisterController {
             return false;
         }
         
-        String role = roleComboBox.getValue();
-        if ("Tourist".equals(role) && nationalityField.getText().trim().isEmpty()) {
-            showAlert("Error", "Please enter your nationality!");
+        // Validate email format
+        String email = emailField.getText().trim();
+        if (!email.contains("@") || !email.contains(".")) {
+            showAlert("Error", "Please enter a valid email address!");
             return false;
+        }
+        
+        // Validate username length
+        if (usernameField.getText().trim().length() < 3) {
+            showAlert("Error", "Username must be at least 3 characters long!");
+            return false;
+        }
+        
+        // Validate password length
+        if (passwordField.getText().trim().length() < 3) {
+            showAlert("Error", "Password must be at least 3 characters long!");
+            return false;
+        }
+        
+        String role = roleComboBox.getValue();
+        
+        // Role-specific validation
+        if ("Tourist".equals(role)) {
+            if (nationalityField.getText().trim().isEmpty()) {
+                showAlert("Error", "Please enter your nationality!");
+                return false;
+            }
         }
         
         if ("Guide".equals(role)) {
             if (languagesField.getText().trim().isEmpty()) {
-                showAlert("Error", "Please enter languages you speak!");
+                showAlert("Error", "Please enter the languages you speak!");
                 return false;
             }
+            
+            if (experienceField.getText().trim().isEmpty()) {
+                showAlert("Error", "Please enter your years of experience!");
+                return false;
+            }
+            
             try {
-                Integer.parseInt(experienceField.getText().trim());
+                int experience = Integer.parseInt(experienceField.getText().trim());
+                if (experience < 0 || experience > 50) {
+                    showAlert("Error", "Please enter a valid experience between 0 and 50 years!");
+                    return false;
+                }
             } catch (NumberFormatException e) {
-                showAlert("Error", "Please enter valid experience years!");
+                showAlert("Error", "Please enter a valid number for experience years!");
                 return false;
             }
         }
@@ -165,7 +238,6 @@ public class RegisterController {
     }
     
     private void updateLanguage() {
-        // Update UI elements with current language
         registerButton.setText(LanguageManager.getText("Register"));
         backButton.setText(LanguageManager.getText("Back"));
         nationalityLabel.setText(LanguageManager.getText("Nationality"));
@@ -181,3 +253,4 @@ public class RegisterController {
         alert.showAndWait();
     }
 }
+
