@@ -38,6 +38,9 @@ public class Guide extends Person {
     
     public List<Booking> getAssignedBookings() { return new ArrayList<>(assignedBookings); }
     public void assignBooking(Booking booking) { 
+        if (this.assignedBookings == null) {
+            this.assignedBookings = new ArrayList<>();
+        }
         this.assignedBookings.add(booking);
         // Calculate commission (12% of booking price)
         double commission = booking.getTotalPrice() * 0.12;
@@ -86,3 +89,4 @@ public class Guide extends Person {
                "Available: " + (isAvailable ? "Yes" : "No");
     }
 }
+
