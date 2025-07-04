@@ -67,7 +67,7 @@ public class LoginController {
         try {
             String fxmlFile = "";
             String title = "";
-            
+        
             // Polymorphism in action - using the same method for different user types
             switch (user.getRole()) {
                 case "Tourist":
@@ -82,30 +82,46 @@ public class LoginController {
                     fxmlFile = "/fxml/adminDashboard.fxml";
                     title = "Admin Dashboard - Nepal Tourism";
                     break;
+                default:
+                    showAlert("Error", "Unknown user role: " + user.getRole());
+                    return;
             }
-            
+        
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
-            Scene scene = new Scene(loader.load(), 1000, 700);
-            
-            // Pass user data to the controller
-            if (user instanceof Tourist) {
-                TouristDashboardController controller = loader.getController();
-                controller.setCurrentUser((Tourist) user);
-            } else if (user instanceof Guide) {
-                GuideDashboardController controller = loader.getController();
-                controller.setCurrentUser((Guide) user);
-            } else if (user instanceof Admin) {
-                AdminDashboardController controller = loader.getController();
-                controller.setCurrentUser((Admin) user);
+            Scene scene = new Scene(loader.load(), 1200, 800);
+        
+            // Get the controller and set user data
+            Object controller = loader.getController();
+            if (controller != null) {
+                if (user instanceof Tourist && controller instanceof TouristDashboardController) {
+                    ((TouristDashboardController) controller).setCurrentUser((Tourist) user);
+                } else if (user instanceof Guide && controller instanceof GuideDashboardController) {
+                    ((GuideDashboardController) controller).setCurrentUser((Guide) user);
+                } else if (user instanceof Admin && controller instanceof AdminDashboardController) {
+                    ((AdminDashboardController) controller).setCurrentUser((Admin) user);
+                }
             }
-            
+        
             Stage stage = (Stage) loginButton.getScene().getWindow();
             stage.setTitle(title);
             stage.setScene(scene);
-            
+        
+            // Enable full screen capabilities for dashboard
+            stage.setResizable(true);
+            stage.setMaximized(true);
+        
+            // Add full screen toggle for dashboard
+            scene.setOnKeyPressed(event -> {
+                if (event.getCode() == javafx.scene.input.KeyCode.F11) {
+                    stage.setFullScreen(!stage.isFullScreen());
+                }
+            });
+        
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Error", "Failed to open dashboard!");
+            showAlert("Error", "Failed to open dashboard: " + e.getMessage());
+            System.err.println("Dashboard loading error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -148,3 +164,4 @@ public class LoginController {
         alert.showAndWait();
     }
 }
+
