@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.GuideDashboardController">
+   <top>
+      <VBox style="-fx-background-color: linear-gradient(to right, #FF8C00, #FFD700);">
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="20.0">
+               <padding>
+                  <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
+               </padding>
+               <children>
+                  <Label fx:id="welcomeLabel" text="Welcome Guide!" textFill="WHITE">
+                     <font>
+                        <Font name="System Bold" size="18.0" />
+                     </font>
+                  </Label>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="refreshButton" onAction="#handleRefresh" style="-fx-background-color: white; -fx-text-fill: #FF8C00;" text="Refresh" />
+                  <Button fx:id="languageToggleButton" onAction="#toggleLanguage" style="-fx-background-color: white; -fx-text-fill: #FF8C00;" text="English" />
+                  <Button fx:id="logoutButton" onAction="#handleLogout" style="-fx-background-color: #FF6347; -fx-text-fill: white;" text="Logout" />
+               </children>
+            </HBox>
+            <Label fx:id="dashboardInfoLabel" text="Dashboard Info" textFill="WHITE">
+               <padding>
+                  <Insets bottom="10.0" left="20.0" right="20.0" />
+               </padding>
+            </Label>
+         </children>
+      </VBox>
+   </top>
+   
+   <center>
+      <TabPane tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+            <Tab text="Profile & Earnings">
+               <content>
+                  <VBox spacing="20.0">
+                     <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                     </padding>
+                     <children>
+                        <Label text="Guide Profile Information">
+                           <font>
+                              <Font name="System Bold" size="16.0" />
+                           </font>
+                        </Label>
+                        
+                        <VBox spacing="10.0" style="-fx-background-color: #FFF8DC; -fx-padding: 15; -fx-background-radius: 10;">
+                           <children>
+                              <Label fx:id="earningsLabel" text="Total Earnings: $0.00">
+                                 <font>
+                                    <Font name="System Bold" size="14.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="languagesLabel" text="Languages: " />
+                              <Label fx:id="experienceLabel" text="Experience: " />
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+            
+            <Tab text="Upcoming Treks">
+               <content>
+                  <VBox spacing="15.0">
+                     <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                     </padding>
+                     <children>
+                        <Label text="Your Assigned Treks">
+                           <font>
+                              <Font name="System Bold" size="16.0" />
+                           </font>
+                        </Label>
+                        
+                        <TableView fx:id="upcomingTreksTable" prefHeight="300.0">
+                           <columns>
+                              <TableColumn fx:id="bookingIdColumn" prefWidth="80.0" text="Booking ID" />
+                              <TableColumn fx:id="touristColumn" prefWidth="150.0" text="Tourist" />
+                              <TableColumn fx:id="attractionColumn" prefWidth="200.0" text="Trek/Attraction" />
+                              <TableColumn fx:id="dateColumn" prefWidth="120.0" text="Date" />
+                              <TableColumn fx:id="difficultyColumn" prefWidth="100.0" text="Difficulty" />
+                           </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+            
+            <Tab text="Important Updates">
+               <content>
+                  <VBox spacing="15.0">
+                     <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                     </padding>
+                     <children>
+                        <Label text="Weather Alerts & Safety Updates">
+                           <font>
+                              <Font name="System Bold" size="16.0" />
+                           </font>
+                        </Label>
+                        
+                        <TextArea fx:id="updatesTextArea" prefHeight="400.0" style="-fx-background-color: #FFFACD;" wrapText="true" />
+                     </children>
+                  </VBox>
+               </content>
+            </Tab>
+         </tabs>
+      </TabPane>
+   </center>
+</BorderPane>
