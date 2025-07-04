@@ -5,11 +5,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 import com.tourism.utils.FileHandler;
 
 public class Main extends Application {
+    
+    private boolean wasMaximized = false;
     
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -29,22 +30,45 @@ public class Main extends Application {
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(600);
         
-        // Set maximum window size (optional)
+        // Set maximum window size
         primaryStage.setMaxWidth(1920);
         primaryStage.setMaxHeight(1080);
         
-        // Enable full screen mode with F11 key
-        primaryStage.setFullScreenExitHint("Press F11 to exit full screen mode");
+        // Configure full screen
+        primaryStage.setFullScreenExitHint("Press F11 or ESC to exit full screen mode");
         primaryStage.setFullScreenExitKeyCombination(new KeyCodeCombination(KeyCode.F11));
         
-        // Add keyboard shortcut for full screen toggle
+        // Track maximized state before going fullscreen
+        primaryStage.maximizedProperty().addListener((obs, wasMaximized, isMaximized) -> {
+            if (!primaryStage.isFullScreen()) {
+                this.wasMaximized = isMaximized;
+            }
+        });
+        
+        // Handle fullscreen state changes
+        primaryStage.fullScreenProperty().addListener((obs, wasFullScreen, isFullScreen) -> {
+            if (!isFullScreen) {
+                // When exiting fullscreen, restore previous state
+                if (this.wasMaximized) {
+                    primaryStage.setMaximized(true);
+                } else {
+                    primaryStage.setMaximized(false);
+                    // Set a reasonable window size
+                    primaryStage.setWidth(1200);
+                    primaryStage.setHeight(800);
+                    primaryStage.centerOnScreen();
+                }
+            }
+        });
+        
+        // Add keyboard shortcuts
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.F11) {
-                primaryStage.setFullScreen(!primaryStage.isFullScreen());
+                toggleFullScreen(primaryStage);
             }
             // Alt + Enter also toggles full screen
             else if (event.isAltDown() && event.getCode() == KeyCode.ENTER) {
-                primaryStage.setFullScreen(!primaryStage.isFullScreen());
+                toggleFullScreen(primaryStage);
             }
             // Escape exits full screen
             else if (event.getCode() == KeyCode.ESCAPE && primaryStage.isFullScreen()) {
@@ -54,12 +78,24 @@ public class Main extends Application {
         
         primaryStage.show();
         
-        // Optional: Start in maximized mode (not full screen)
+        // Start maximized (not full screen)
         primaryStage.setMaximized(true);
+        this.wasMaximized = true;
+    }
+    
+    private void toggleFullScreen(Stage stage) {
+        if (!stage.isFullScreen()) {
+            // Remember current maximized state before going fullscreen
+            this.wasMaximized = stage.isMaximized();
+            stage.setFullScreen(true);
+        } else {
+            stage.setFullScreen(false);
+        }
     }
     
     public static void main(String[] args) {
         launch(args);
     }
 }
+
 
