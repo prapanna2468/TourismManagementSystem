@@ -36,6 +36,14 @@ public class GuideDashboardController {
     
     public void setCurrentUser(Guide user) {
         this.currentUser = user;
+        System.out.println("Setting current user: " + user.getFullName() + " (" + user.getRole() + ")");
+        
+        // Initialize collections if null
+        if (this.currentUser.getAssignedBookings() == null) {
+            // This shouldn't happen, but let's be safe
+            System.out.println("Warning: Guide assigned bookings list was null, initializing...");
+        }
+        
         initializeDashboard();
     }
     
@@ -47,16 +55,26 @@ public class GuideDashboardController {
     }
     
     private void initializeDashboard() {
-        // Display user info using polymorphism
-        welcomeLabel.setText(LanguageManager.getText("Welcome") + ", " + currentUser.getFullName() + "!");
-        dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-        
-        // Display specific guide information
-        earningsLabel.setText("Total Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()));
-        languagesLabel.setText("Languages: " + currentUser.getLanguagesString());
-        experienceLabel.setText("Experience: " + currentUser.getExperienceYears() + " years");
-        
-        loadAssignedBookings();
+        try {
+            System.out.println("Initializing guide dashboard for: " + currentUser.getFullName());
+            
+            // Display user info using polymorphism
+            welcomeLabel.setText(LanguageManager.getText("Welcome") + ", " + currentUser.getFullName() + "!");
+            dashboardInfoLabel.setText(currentUser.getDashboardInfo());
+            
+            // Display specific guide information
+            earningsLabel.setText("Total Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()));
+            languagesLabel.setText("Languages: " + currentUser.getLanguagesString());
+            experienceLabel.setText("Experience: " + currentUser.getExperienceYears() + " years");
+            
+            loadAssignedBookings();
+            
+            System.out.println("Guide dashboard initialized successfully");
+            
+        } catch (Exception e) {
+            System.err.println("Error initializing guide dashboard: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     private void setupTableColumns() {
@@ -70,20 +88,33 @@ public class GuideDashboardController {
     }
     
     private void loadAssignedBookings() {
-        List<Booking> allBookings = FileHandler.loadBookings();
-        assignedBookings = FXCollections.observableArrayList();
-        
-        for (Booking booking : allBookings) {
-            if (booking.getGuideUsername().equals(currentUser.getUsername()) && booking.isUpcoming()) {
-                assignedBookings.add(booking);
-                currentUser.assignBooking(booking); // This will calculate earnings
+        try {
+            List<Booking> allBookings = FileHandler.loadBookings();
+            assignedBookings = FXCollections.observableArrayList();
+            
+            System.out.println("Loading bookings for guide: " + currentUser.getUsername());
+            System.out.println("Total bookings in system: " + allBookings.size());
+            
+            for (Booking booking : allBookings) {
+                if (booking.getGuideUsername() != null && 
+                    booking.getGuideUsername().equals(currentUser.getUsername()) && 
+                    booking.isUpcoming()) {
+                    assignedBookings.add(booking);
+                    System.out.println("Found assigned booking: " + booking.getBookingId());
+                }
             }
+            
+            upcomingTreksTable.setItems(assignedBookings);
+            
+            System.out.println("Loaded " + assignedBookings.size() + " assigned bookings");
+            
+            // Update earnings display
+            earningsLabel.setText("Total Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()));
+            
+        } catch (Exception e) {
+            System.err.println("Error loading assigned bookings: " + e.getMessage());
+            e.printStackTrace();
         }
-        
-        upcomingTreksTable.setItems(assignedBookings);
-        
-        // Update earnings display
-        earningsLabel.setText("Total Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()));
     }
     
     private void loadImportantUpdates() {
