@@ -81,7 +81,7 @@ public class FileHandler {
             writer.write("Full Name: " + guide.getFullName() + "\n");
             writer.write("Email: " + guide.getEmail() + "\n");
             writer.write("Phone: " + guide.getPhone() + "\n");
-            writer.write("Languages: " + guide.getLanguagesString() + "\n");
+            writer.write("Languages: " + String.join(", ", guide.getLanguages()) + "\n");
             writer.write("Experience: " + guide.getExperienceYears() + "\n");
             writer.write("Role: Guide\n");
             writer.write(SEPARATOR + "\n");
@@ -98,27 +98,36 @@ public class FileHandler {
             
             while ((line = reader.readLine()) != null) {
                 if (line.equals(SEPARATOR)) {
-                    if (!data.isEmpty()) {
-                        List<String> languages = Arrays.asList(data.get("Languages").split(", "));
-                        Guide guide = new Guide(
-                            data.get("Username"),
-                            data.get("Password"),
-                            data.get("Full Name"),
-                            data.get("Email"),
-                            data.get("Phone"),
-                            languages,
-                            Integer.parseInt(data.get("Experience"))
-                        );
-                        guides.add(guide);
+                    if (!data.isEmpty() && data.containsKey("Languages") && data.containsKey("Experience")) {
+                        try {
+                            List<String> languages = Arrays.asList(data.get("Languages").split("\\s*,\\s*"));
+                            int experience = Integer.parseInt(data.get("Experience"));
+                            
+                            Guide guide = new Guide(
+                                data.get("Username"),
+                                data.get("Password"),
+                                data.get("Full Name"),
+                                data.get("Email"),
+                                data.get("Phone"),
+                                languages,
+                                experience
+                            );
+                            guides.add(guide);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Error parsing guide experience: " + e.getMessage());
+                        }
                         data.clear();
                     }
                 } else if (line.contains(": ")) {
                     String[] parts = line.split(": ", 2);
-                    data.put(parts[0], parts[1]);
+                    if (parts.length == 2) {
+                        data.put(parts[0], parts[1]);
+                    }
                 }
             }
         } catch (IOException e) {
             // File doesn't exist yet, return empty list
+            System.out.println("Guides file not found, returning empty list");
         }
         return guides;
     }
@@ -262,3 +271,4 @@ public class FileHandler {
         }
     }
 }
+
