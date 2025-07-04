@@ -226,11 +226,14 @@ public class RegisterController {
     private void handleBack() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-            Scene scene = new Scene(loader.load(), 800, 600);
+            Scene scene = new Scene(loader.load(), 900, 700);
             
             Stage stage = (Stage) backButton.getScene().getWindow();
             stage.setTitle("Nepal Tourism Management System");
             stage.setScene(scene);
+            
+            // Restore proper window state
+            stage.setMaximized(true);
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -253,4 +256,3 @@ public class RegisterController {
         alert.showAndWait();
     }
 }
-
