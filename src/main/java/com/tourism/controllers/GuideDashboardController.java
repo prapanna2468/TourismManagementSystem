@@ -88,8 +88,6 @@ public class GuideDashboardController {
     
     private void loadImportantUpdates() {
         StringBuilder updates = new StringBuilder();
-        updates.append("🌦️ WEATHER
-        StringBuilder updates = new StringBuilder();
         updates.append("🌦️ WEATHER ALERTS:\n");
         updates.append("• Heavy snow expected on Everest Base Camp trek (Next 3 days)\n");
         updates.append("• Clear weather forecast for Annapurna Circuit\n");
