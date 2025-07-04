@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.LoginController">
+   <children>
+      <VBox alignment="CENTER" prefHeight="600.0" prefWidth="800.0" style="-fx-background-color: linear-gradient(to bottom, #2E8B57, #228B22);">
+         <children>
+            <VBox alignment="CENTER" maxWidth="400.0" style="-fx-background-color: white; -fx-background-radius: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5);">
+               <padding>
+                  <Insets bottom="30.0" left="40.0" right="40.0" top="30.0" />
+               </padding>
+               <children>
+                  <Label fx:id="titleLabel" text="Nepal Tourism Management System" textAlignment="CENTER">
+                     <font>
+                        <Font name="System Bold" size="20.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="30.0" />
+                     </VBox.margin>
+                  </Label>
+                  
+                  <VBox spacing="15.0">
+                     <children>
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label fx:id="usernameLabel" text="Username:" />
+                              <TextField fx:id="usernameField" promptText="Enter username" style="-fx-pref-height: 35;" />
+                           </children>
+                        </VBox>
+                        
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label fx:id="passwordLabel" text="Password:" />
+                              <PasswordField fx:id="passwordField" promptText="Enter password" style="-fx-pref-height: 35;" />
+                           </children>
+                        </VBox>
+                        
+                        <HBox spacing="10.0" alignment="CENTER">
+                           <children>
+                              <Button fx:id="loginButton" onAction="#handleLogin" prefWidth="120.0" style="-fx-background-color: #2E8B57; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 40;" text="Login" />
+                              <Button fx:id="registerButton" onAction="#handleRegister" prefWidth="120.0" style="-fx-background-color: #FF6347; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 40;" text="Register" />
+                           </children>
+                           <VBox.margin>
+                              <Insets top="20.0" />
+                           </VBox.margin>
+                        </HBox>
+                        
+                        <Button fx:id="languageToggleButton" onAction="#toggleLanguage" style="-fx-background-color: #4682B4; -fx-text-fill: white;" text="English" />
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+         </children>
+      </VBox>
+   </children>
+</VBox>
