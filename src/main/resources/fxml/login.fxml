@@ -5,11 +5,8 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.LoginController">
+<StackPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.LoginController" style="-fx-background-color: linear-gradient(to bottom, #2E8B57, #228B22);">
    <children>
-      <!-- Background -->
-      <Rectangle width="2000.0" height="2000.0" style="-fx-fill: linear-gradient(to bottom, #2E8B57, #228B22);" />
-      
       <!-- Exit Button - Top Right Corner -->
       <HBox alignment="TOP_RIGHT" StackPane.alignment="TOP_RIGHT">
          <padding>
