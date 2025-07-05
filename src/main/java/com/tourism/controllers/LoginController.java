@@ -1,5 +1,6 @@
 package com.tourism.controllers;
 
+import com.tourism.Main;
 import com.tourism.models.*;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
@@ -74,15 +75,15 @@ public class LoginController {
             switch (user.getRole()) {
                 case "Tourist":
                     fxmlFile = "/fxml/touristDashboard.fxml";
-                    title = "Tourist Dashboard - Nepal Tourism";
+                    title = "Journey - Tourist Dashboard";
                     break;
                 case "Guide":
                     fxmlFile = "/fxml/guideDashboard.fxml";
-                    title = "Guide Dashboard - Nepal Tourism";
+                    title = "Journey - Guide Dashboard";
                     break;
                 case "Admin":
                     fxmlFile = "/fxml/adminDashboard.fxml";
-                    title = "Admin Dashboard - Nepal Tourism";
+                    title = "Journey - Admin Dashboard";
                     break;
                 default:
                     showAlert("Error", "Unknown user role: " + user.getRole());
@@ -99,77 +100,52 @@ public class LoginController {
             }
         
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
-            Scene scene = new Scene(loader.load(), 1200, 800);
+            Scene scene = new Scene(loader.load());
         
-        // Get the controller and set user data
-        Object controller = loader.getController();
-        System.out.println("Controller loaded: " + (controller != null ? controller.getClass().getSimpleName() : "null"));
+            // Get the controller and set user data
+            Object controller = loader.getController();
+            System.out.println("Controller loaded: " + (controller != null ? controller.getClass().getSimpleName() : "null"));
         
-        if (controller != null) {
-            if (user instanceof Tourist && controller instanceof TouristDashboardController) {
-                ((TouristDashboardController) controller).setCurrentUser((Tourist) user);
-            } else if (user instanceof Guide && controller instanceof GuideDashboardController) {
-                System.out.println("Setting Guide user in GuideDashboardController");
-                ((GuideDashboardController) controller).setCurrentUser((Guide) user);
-            } else if (user instanceof Admin && controller instanceof AdminDashboardController) {
-                ((AdminDashboardController) controller).setCurrentUser((Admin) user);
+            if (controller != null) {
+                if (user instanceof Tourist && controller instanceof TouristDashboardController) {
+                    ((TouristDashboardController) controller).setCurrentUser((Tourist) user);
+                } else if (user instanceof Guide && controller instanceof GuideDashboardController) {
+                    System.out.println("Setting Guide user in GuideDashboardController");
+                    ((GuideDashboardController) controller).setCurrentUser((Guide) user);
+                } else if (user instanceof Admin && controller instanceof AdminDashboardController) {
+                    ((AdminDashboardController) controller).setCurrentUser((Admin) user);
+                } else {
+                    System.err.println("Controller type mismatch: " + controller.getClass() + " for user " + user.getClass());
+                }
             } else {
-                System.err.println("Controller type mismatch: " + controller.getClass() + " for user " + user.getClass());
+                System.err.println("Controller is null for " + fxmlFile);
             }
-        } else {
-            System.err.println("Controller is null for " + fxmlFile);
+        
+            // Use the new scene switching method to maintain full screen
+            Main.switchScene(scene, title);
+        
+            System.out.println("Dashboard loaded successfully for " + user.getRole());
+        
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Error", "Failed to open dashboard: " + e.getMessage());
+            System.err.println("Dashboard loading error details:");
+            System.err.println("User: " + user.getClass().getSimpleName());
+            System.err.println("Role: " + user.getRole());
+            System.err.println("Error: " + e.getMessage());
+            System.err.println("Stack trace:");
+            e.printStackTrace();
         }
-        
-        Stage stage = (Stage) loginButton.getScene().getWindow();
-        
-        // Remember current state
-        boolean wasMaximized = stage.isMaximized();
-        boolean wasFullScreen = stage.isFullScreen();
-        
-        stage.setTitle(title);
-        stage.setScene(scene);
-        
-        // Restore window state
-        if (wasFullScreen) {
-            stage.setFullScreen(true);
-        } else if (wasMaximized) {
-            stage.setMaximized(true);
-        }
-        
-        // Add full screen toggle for dashboard
-        scene.setOnKeyPressed(event -> {
-            if (event.getCode() == javafx.scene.input.KeyCode.F11) {
-                stage.setFullScreen(!stage.isFullScreen());
-            } else if (event.isAltDown() && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
-                stage.setFullScreen(!stage.isFullScreen());
-            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE && stage.isFullScreen()) {
-                stage.setFullScreen(false);
-            }
-        });
-        
-        System.out.println("Dashboard loaded successfully for " + user.getRole());
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-        showAlert("Error", "Failed to open dashboard: " + e.getMessage());
-        System.err.println("Dashboard loading error details:");
-        System.err.println("User: " + user.getClass().getSimpleName());
-        System.err.println("Role: " + user.getRole());
-        System.err.println("Error: " + e.getMessage());
-        System.err.println("Stack trace:");
-        e.printStackTrace();
     }
-}
     
     @FXML
     private void handleRegister() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/register.fxml"));
-            Scene scene = new Scene(loader.load(), 600, 500);
+            Scene scene = new Scene(loader.load());
             
-            Stage stage = (Stage) registerButton.getScene().getWindow();
-            stage.setTitle("Register - Nepal Tourism");
-            stage.setScene(scene);
+            // Use the new scene switching method to maintain full screen
+            Main.switchScene(scene, "Journey - Create Account");
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -184,7 +160,7 @@ public class LoginController {
     }
     
     private void updateLanguage() {
-        titleLabel.setText(LanguageManager.getText("Nepal Tourism Management System"));
+        titleLabel.setText("Journey");
         usernameLabel.setText(LanguageManager.getText("Username"));
         passwordLabel.setText(LanguageManager.getText("Password"));
         loginButton.setText(LanguageManager.getText("Login"));
