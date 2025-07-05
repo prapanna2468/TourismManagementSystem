@@ -15,12 +15,16 @@ public class Guide extends Person {
     public Guide(String username, String password, String fullName, String email, String phone, 
                  List<String> languages, int experienceYears) {
         super(username, password, fullName, email, phone);
-        this.languages = new ArrayList<>(languages);
+        
+        // Ensure all collections are properly initialized
+        this.languages = languages != null ? new ArrayList<>(languages) : new ArrayList<>();
         this.experienceYears = experienceYears;
         this.specializations = new ArrayList<>();
         this.totalEarnings = 0.0;
         this.assignedBookings = new ArrayList<>();
         this.isAvailable = true;
+        
+        System.out.println("Guide created: " + fullName + " with " + this.languages.size() + " languages");
     }
     
     // Encapsulation
@@ -89,4 +93,3 @@ public class Guide extends Person {
                "Available: " + (isAvailable ? "Yes" : "No");
     }
 }
-
