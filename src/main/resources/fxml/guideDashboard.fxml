@@ -37,7 +37,7 @@
    <center>
       <TabPane tabClosingPolicy="UNAVAILABLE">
          <tabs>
-            <Tab text="Profile & Earnings">
+            <Tab text="Profile &amp; Earnings">
                <content>
                   <VBox spacing="20.0">
                      <padding>
@@ -100,7 +100,7 @@
                         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                      </padding>
                      <children>
-                        <Label text="Weather Alerts & Safety Updates">
+                        <Label text="Weather Alerts &amp; Safety Updates">
                            <font>
                               <Font name="System Bold" size="16.0" />
                            </font>
