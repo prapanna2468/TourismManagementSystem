@@ -2,6 +2,7 @@ package com.tourism.controllers;
 
 import com.tourism.Main;
 import com.tourism.models.*;
+import com.tourism.utils.DialogUtils;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
 import javafx.collections.FXCollections;
@@ -259,13 +260,13 @@ public class GuideDashboardController implements Initializable {
             initializeDashboard();
             loadImportantUpdates();
         
-            showAlert("Success", "Dashboard refreshed successfully!\n" +
+            DialogUtils.showInfo("Success", "Dashboard refreshed successfully!\n" +
                 "Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()) + "\n" +
                 "Assigned Bookings: " + (assignedBookings != null ? assignedBookings.size() : 0));
         
         } catch (Exception e) {
             System.err.println("Error refreshing dashboard: " + e.getMessage());
-            showAlert("Error", "Failed to refresh dashboard");
+            DialogUtils.showError("Error", "Failed to refresh dashboard");
         }
     }
     
@@ -308,18 +309,6 @@ public class GuideDashboardController implements Initializable {
             }
         } catch (Exception e) {
             System.err.println("Error updating language: " + e.getMessage());
-        }
-    }
-    
-    private void showAlert(String title, String message) {
-        try {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle(LanguageManager.getText(title));
-            alert.setHeaderText(null);
-            alert.setContentText(LanguageManager.getText(message));
-            alert.showAndWait();
-        } catch (Exception e) {
-            System.err.println("Error showing alert: " + e.getMessage());
         }
     }
 }
