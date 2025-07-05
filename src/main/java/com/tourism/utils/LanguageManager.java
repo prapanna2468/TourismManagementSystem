@@ -62,6 +62,7 @@ public class LanguageManager {
         translations.put("Close", "बन्द गर्नुहोस्");
         translations.put("Yes", "हो");
         translations.put("No", "होइन");
+        translations.put("Exit", "बाहिर निस्कनुहोस्");
     }
     
     public static void toggleLanguage() {
