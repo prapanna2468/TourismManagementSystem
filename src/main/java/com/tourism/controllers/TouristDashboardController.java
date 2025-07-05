@@ -2,6 +2,7 @@ package com.tourism.controllers;
 
 import com.tourism.Main;
 import com.tourism.models.*;
+import com.tourism.utils.DialogUtils;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
 import javafx.collections.FXCollections;
@@ -150,37 +151,32 @@ public class TouristDashboardController {
         LocalDate selectedDate = trekDatePicker.getValue();
         
         if (selectedAttraction == null || selectedDate == null) {
-            showAlert("Error", "Please select attraction and date!");
+            DialogUtils.showError("Error", "Please select attraction and date!");
             return;
         }
         
         if (selectedDate.isBefore(LocalDate.now())) {
-            showAlert("Error", "Cannot book for past dates!");
+            DialogUtils.showError("Error", "Cannot book for past dates!");
             return;
         }
         
         // Check if attraction is available
         if (!selectedAttraction.isAvailable()) {
-            showAlert("Error", "This attraction is fully booked!");
+            DialogUtils.showError("Error", "This attraction is fully booked!");
             return;
         }
         
         // Show high altitude warning
         if (selectedAttraction.isHighAltitude()) {
-            // Temporarily exit full screen for better dialog display
-            Main.temporaryExitFullScreen();
+            Alert alert = DialogUtils.createAlert(Alert.AlertType.WARNING, 
+                LanguageManager.getText("High Altitude Warning"), 
+                "This trek involves high altitude. Please ensure you are physically fit and consult a doctor if you have any health concerns. Proper acclimatization is essential.");
             
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle(LanguageManager.getText("High Altitude Warning"));
             alert.setHeaderText("High Altitude Trek Selected!");
-            alert.setContentText("This trek involves high altitude. Please ensure you are physically fit and consult a doctor if you have any health concerns. Proper acclimatization is essential.");
             
             ButtonType continueButton = new ButtonType("Continue Booking");
             ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
             alert.getButtonTypes().setAll(continueButton, cancelButton);
-            
-            // Restore full screen after dialog closes
-            alert.setOnHidden(e -> Main.restoreFullScreen());
             
             if (alert.showAndWait().orElse(cancelButton) == cancelButton) {
                 return;
@@ -193,17 +189,11 @@ public class TouristDashboardController {
         
         // Show festival discount popup if applicable
         if (newBooking.isFestivalDiscountApplied()) {
-            // Temporarily exit full screen for better dialog display
-            Main.temporaryExitFullScreen();
+            Alert festivalAlert = DialogUtils.createAlert(Alert.AlertType.INFORMATION,
+                LanguageManager.getText("Festival Discount Applied"),
+                "Congratulations! You've received a 20% discount for booking during the festival season (August-October). Enjoy your trek!");
             
-            Alert festivalAlert = new Alert(Alert.AlertType.INFORMATION);
-            festivalAlert.setTitle(LanguageManager.getText("Festival Discount Applied"));
             festivalAlert.setHeaderText("🎉 Dashain & Tihar Festival Discount!");
-            festivalAlert.setContentText("Congratulations! You've received a 20% discount for booking during the festival season (August-October). Enjoy your trek!");
-            
-            // Restore full screen after dialog closes
-            festivalAlert.setOnHidden(e -> Main.restoreFullScreen());
-            
             festivalAlert.showAndWait();
         }
         
@@ -215,7 +205,7 @@ public class TouristDashboardController {
         // Update dashboard info
         dashboardInfoLabel.setText(currentUser.getDashboardInfo());
         
-        showAlert("Success", "Booking confirmed successfully!\nBooking ID: " + newBooking.getBookingId());
+        DialogUtils.showInfo("Success", "Booking confirmed successfully!\nBooking ID: " + newBooking.getBookingId());
         
         // Clear selection
         attractionComboBox.setValue(null);
@@ -227,12 +217,12 @@ public class TouristDashboardController {
     private void handleUpdateBooking() {
         Booking selectedBooking = bookingsTable.getSelectionModel().getSelectedItem();
         if (selectedBooking == null) {
-            showAlert("Error", "Please select a booking to update!");
+            DialogUtils.showError("Error", "Please select a booking to update!");
             return;
         }
         
         if (!selectedBooking.canBeModified()) {
-            showAlert("Error", "This booking cannot be modified! Bookings can only be modified at least 3 days before the trek date.");
+            DialogUtils.showError("Error", "This booking cannot be modified! Bookings can only be modified at least 3 days before the trek date.");
             return;
         }
         
@@ -241,8 +231,7 @@ public class TouristDashboardController {
     }
 
     private void showBookingUpdateDialog(Booking booking) {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Update Booking - ID: " + booking.getBookingId());
+        Dialog<ButtonType> dialog = DialogUtils.createDialog("Update Booking - ID: " + booking.getBookingId());
         dialog.setHeaderText("Modify your booking details");
 
         // Create the dialog content
@@ -375,17 +364,17 @@ public class TouristDashboardController {
         try {
             // Validation
             if (newAttraction == null || newDate == null) {
-                showAlert("Error", "Please select both attraction and date!");
+                DialogUtils.showError("Error", "Please select both attraction and date!");
                 return;
             }
 
             if (newDate.isBefore(LocalDate.now())) {
-                showAlert("Error", "Cannot set trek date in the past!");
+                DialogUtils.showError("Error", "Cannot set trek date in the past!");
                 return;
             }
 
             if (newDate.isBefore(LocalDate.now().plusDays(3))) {
-                showAlert("Error", "Trek date must be at least 3 days from today!");
+                DialogUtils.showError("Error", "Trek date must be at least 3 days from today!");
                 return;
             }
 
@@ -395,7 +384,7 @@ public class TouristDashboardController {
             boolean notesChanged = !newNotes.trim().equals(originalBooking.getNotes().trim());
 
             if (!attractionChanged && !dateChanged && !notesChanged) {
-                showAlert("Info", "No changes were made to the booking.");
+                DialogUtils.showInfo("Info", "No changes were made to the booking.");
                 return;
             }
 
@@ -403,10 +392,10 @@ public class TouristDashboardController {
             if (attractionChanged && newAttraction.isHighAltitude() &&
                     !originalBooking.getAttraction().isHighAltitude()) {
 
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("High Altitude Warning");
+                Alert alert = DialogUtils.createAlert(Alert.AlertType.WARNING, "High Altitude Warning",
+                    "Your new selection involves high altitude. Please ensure you are physically fit and consult a doctor if you have any health concerns.");
+                
                 alert.setHeaderText("High Altitude Trek Selected!");
-                alert.setContentText("Your new selection involves high altitude. Please ensure you are physically fit and consult a doctor if you have any health concerns.");
 
                 ButtonType continueButton = new ButtonType("Continue Update");
                 ButtonType cancelButton = new ButtonType("Cancel Update", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -484,11 +473,11 @@ public class TouristDashboardController {
                 message.append("\n🎉 Festival discount now applied!");
             }
 
-            showAlert("Success", message.toString());
+            DialogUtils.showInfo("Success", message.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Error", "Failed to update booking: " + e.getMessage());
+            DialogUtils.showError("Error", "Failed to update booking: " + e.getMessage());
         }
     }
     
@@ -496,21 +485,16 @@ public class TouristDashboardController {
     private void handleCancelBooking() {
         Booking selectedBooking = bookingsTable.getSelectionModel().getSelectedItem();
         if (selectedBooking == null) {
-            showAlert("Error", "Please select a booking to cancel!");
+            DialogUtils.showError("Error", "Please select a booking to cancel!");
             return;
         }
         
         if (!selectedBooking.canBeCancelled()) {
-            showAlert("Error", "This booking cannot be cancelled!");
+            DialogUtils.showError("Error", "This booking cannot be cancelled!");
             return;
         }
         
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirm Cancellation");
-        confirmAlert.setHeaderText("Cancel Booking");
-        confirmAlert.setContentText("Are you sure you want to cancel this booking?");
-        
-        if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+        if (DialogUtils.showConfirmation("Confirm Cancellation", "Are you sure you want to cancel this booking?")) {
             // Update tourist's spending before cancelling
             currentUser.removeBooking(selectedBooking);
             
@@ -520,7 +504,7 @@ public class TouristDashboardController {
             // Update dashboard info to reflect new spending
             dashboardInfoLabel.setText(currentUser.getDashboardInfo());
             
-            showAlert("Success", "Booking cancelled successfully! Your total spending has been updated.");
+            DialogUtils.showInfo("Success", "Booking cancelled successfully! Your total spending has been updated.");
         }
     }
     
@@ -551,20 +535,5 @@ public class TouristDashboardController {
         cancelBookingButton.setText(LanguageManager.getText("Cancel"));
         logoutButton.setText(LanguageManager.getText("Logout"));
         languageToggleButton.setText(LanguageManager.getCurrentLanguage());
-    }
-    
-    private void showAlert(String title, String message) {
-        // Temporarily exit full screen for better dialog display
-        Main.temporaryExitFullScreen();
-        
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(LanguageManager.getText(title));
-        alert.setHeaderText(null);
-        alert.setContentText(LanguageManager.getText(message));
-        
-        // Restore full screen after dialog closes
-        alert.setOnHidden(e -> Main.restoreFullScreen());
-        
-        alert.showAndWait();
     }
 }
