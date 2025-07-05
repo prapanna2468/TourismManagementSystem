@@ -5,27 +5,27 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.RegisterController">
-   <children>
-      <VBox alignment="CENTER" prefHeight="700.0" prefWidth="900.0" style="-fx-background-color: linear-gradient(to bottom, #2E8B57, #228B22);">
+<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.RegisterController">
+   <center>
+      <VBox alignment="CENTER" style="-fx-background-color: linear-gradient(to bottom, #2E8B57, #228B22);" BorderPane.alignment="CENTER">
          <children>
-            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" prefViewportWidth="800.0" prefViewportHeight="650.0">
+            <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background: transparent; -fx-background-color: transparent;" maxWidth="900.0" maxHeight="800.0">
                <content>
-                  <VBox alignment="CENTER" maxWidth="750.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0, 0, 8);">
+                  <VBox alignment="CENTER" maxWidth="800.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0, 0, 8);">
                      <padding>
                         <Insets bottom="40.0" left="50.0" right="50.0" top="40.0" />
                      </padding>
                      <children>
-                        <Label text="Create New Account" textAlignment="CENTER" textFill="#2E8B57">
+                        <Label text="Create New Account - Journey" textAlignment="CENTER" textFill="#2E8B57">
                            <font>
-                              <Font name="System Bold" size="24.0" />
+                              <Font name="System Bold" size="28.0" />
                            </font>
                            <VBox.margin>
                               <Insets bottom="30.0" />
                            </VBox.margin>
                         </Label>
                         
-                        <VBox spacing="25.0">
+                        <VBox spacing="25.0" maxWidth="750.0">
                            <children>
                               <!-- Basic Information Section -->
                               <VBox spacing="20.0" style="-fx-background-color: #F0F8FF; -fx-padding: 25; -fx-background-radius: 15; -fx-border-color: #4682B4; -fx-border-width: 2; -fx-border-radius: 15;">
@@ -159,7 +159,5 @@
             </ScrollPane>
          </children>
       </VBox>
-   </children>
-</VBox>
-
-
+   </center>
+</BorderPane>
