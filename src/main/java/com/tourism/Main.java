@@ -35,10 +35,16 @@ public class Main extends Application {
         // Disable all exit combinations
         primaryStage.setFullScreenExitKeyCombination(KeyCodeCombination.NO_MATCH);
         
-        // Ensure it stays full screen
+        // Ensure it stays full screen but allow dialogs to display properly
         primaryStage.fullScreenProperty().addListener((obs, wasFullScreen, isFullScreen) -> {
             if (!isFullScreen) {
-                primaryStage.setFullScreen(true);
+                // Small delay to allow dialogs to close properly
+                javafx.application.Platform.runLater(() -> {
+                    if (!primaryStage.isFocused()) {
+                        // Only restore full screen if no dialog is open
+                        primaryStage.setFullScreen(true);
+                    }
+                });
             }
         });
         
@@ -61,6 +67,22 @@ public class Main extends Application {
             primaryStage.setScene(newScene);
             primaryStage.setTitle(title);
             primaryStage.setFullScreen(true); // Ensure full screen is maintained
+        }
+    }
+    
+    // Method to temporarily exit full screen for dialogs
+    public static void temporaryExitFullScreen() {
+        if (primaryStage != null && primaryStage.isFullScreen()) {
+            primaryStage.setFullScreen(false);
+        }
+    }
+    
+    // Method to restore full screen after dialogs
+    public static void restoreFullScreen() {
+        if (primaryStage != null && !primaryStage.isFullScreen()) {
+            javafx.application.Platform.runLater(() -> {
+                primaryStage.setFullScreen(true);
+            });
         }
     }
     
