@@ -167,6 +167,9 @@ public class TouristDashboardController {
         
         // Show high altitude warning
         if (selectedAttraction.isHighAltitude()) {
+            // Temporarily exit full screen for better dialog display
+            Main.temporaryExitFullScreen();
+            
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle(LanguageManager.getText("High Altitude Warning"));
             alert.setHeaderText("High Altitude Trek Selected!");
@@ -175,6 +178,9 @@ public class TouristDashboardController {
             ButtonType continueButton = new ButtonType("Continue Booking");
             ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
             alert.getButtonTypes().setAll(continueButton, cancelButton);
+            
+            // Restore full screen after dialog closes
+            alert.setOnHidden(e -> Main.restoreFullScreen());
             
             if (alert.showAndWait().orElse(cancelButton) == cancelButton) {
                 return;
@@ -187,10 +193,17 @@ public class TouristDashboardController {
         
         // Show festival discount popup if applicable
         if (newBooking.isFestivalDiscountApplied()) {
+            // Temporarily exit full screen for better dialog display
+            Main.temporaryExitFullScreen();
+            
             Alert festivalAlert = new Alert(Alert.AlertType.INFORMATION);
             festivalAlert.setTitle(LanguageManager.getText("Festival Discount Applied"));
             festivalAlert.setHeaderText("🎉 Dashain & Tihar Festival Discount!");
             festivalAlert.setContentText("Congratulations! You've received a 20% discount for booking during the festival season (August-October). Enjoy your trek!");
+            
+            // Restore full screen after dialog closes
+            festivalAlert.setOnHidden(e -> Main.restoreFullScreen());
+            
             festivalAlert.showAndWait();
         }
         
@@ -541,10 +554,17 @@ public class TouristDashboardController {
     }
     
     private void showAlert(String title, String message) {
+        // Temporarily exit full screen for better dialog display
+        Main.temporaryExitFullScreen();
+        
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(LanguageManager.getText(title));
         alert.setHeaderText(null);
         alert.setContentText(LanguageManager.getText(message));
+        
+        // Restore full screen after dialog closes
+        alert.setOnHidden(e -> Main.restoreFullScreen());
+        
         alert.showAndWait();
     }
 }
