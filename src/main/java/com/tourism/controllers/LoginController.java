@@ -68,6 +68,8 @@ public class LoginController {
             String fxmlFile = "";
             String title = "";
         
+            System.out.println("Opening dashboard for user: " + user.getFullName() + " (Role: " + user.getRole() + ")");
+        
             // Polymorphism in action - using the same method for different user types
             switch (user.getRole()) {
                 case "Tourist":
@@ -87,72 +89,77 @@ public class LoginController {
                     return;
             }
         
-            System.out.println("Loading dashboard for " + user.getRole() + ": " + fxmlFile);
+            System.out.println("Loading FXML file: " + fxmlFile);
         
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
-            if (loader.getLocation() == null) {
+            // Check if resource exists
+            if (getClass().getResource(fxmlFile) == null) {
+                System.err.println("FXML file not found: " + fxmlFile);
                 showAlert("Error", "Dashboard file not found: " + fxmlFile);
                 return;
             }
         
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
             Scene scene = new Scene(loader.load(), 1200, 800);
         
-            // Get the controller and set user data
-            Object controller = loader.getController();
-            if (controller != null) {
-                System.out.println("Controller loaded: " + controller.getClass().getSimpleName());
-            
-                if (user instanceof Tourist && controller instanceof TouristDashboardController) {
-                    ((TouristDashboardController) controller).setCurrentUser((Tourist) user);
-                } else if (user instanceof Guide && controller instanceof GuideDashboardController) {
-                    ((GuideDashboardController) controller).setCurrentUser((Guide) user);
-                } else if (user instanceof Admin && controller instanceof AdminDashboardController) {
-                    ((AdminDashboardController) controller).setCurrentUser((Admin) user);
-                } else {
-                    System.err.println("Controller type mismatch: " + controller.getClass() + " for user " + user.getClass());
-                }
+        // Get the controller and set user data
+        Object controller = loader.getController();
+        System.out.println("Controller loaded: " + (controller != null ? controller.getClass().getSimpleName() : "null"));
+        
+        if (controller != null) {
+            if (user instanceof Tourist && controller instanceof TouristDashboardController) {
+                ((TouristDashboardController) controller).setCurrentUser((Tourist) user);
+            } else if (user instanceof Guide && controller instanceof GuideDashboardController) {
+                System.out.println("Setting Guide user in GuideDashboardController");
+                ((GuideDashboardController) controller).setCurrentUser((Guide) user);
+            } else if (user instanceof Admin && controller instanceof AdminDashboardController) {
+                ((AdminDashboardController) controller).setCurrentUser((Admin) user);
             } else {
-                System.err.println("Controller is null for " + fxmlFile);
+                System.err.println("Controller type mismatch: " + controller.getClass() + " for user " + user.getClass());
             }
-        
-            Stage stage = (Stage) loginButton.getScene().getWindow();
-        
-            // Remember current state
-            boolean wasMaximized = stage.isMaximized();
-            boolean wasFullScreen = stage.isFullScreen();
-        
-            stage.setTitle(title);
-            stage.setScene(scene);
-        
-            // Restore window state
-            if (wasFullScreen) {
-                stage.setFullScreen(true);
-            } else if (wasMaximized) {
-                stage.setMaximized(true);
-            }
-        
-            // Add full screen toggle for dashboard
-            scene.setOnKeyPressed(event -> {
-                if (event.getCode() == javafx.scene.input.KeyCode.F11) {
-                    stage.setFullScreen(!stage.isFullScreen());
-                } else if (event.isAltDown() && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
-                    stage.setFullScreen(!stage.isFullScreen());
-                } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE && stage.isFullScreen()) {
-                    stage.setFullScreen(false);
-                }
-            });
-        
-            System.out.println("Dashboard loaded successfully for " + user.getRole());
-        
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Error", "Failed to open dashboard: " + e.getMessage());
-            System.err.println("Dashboard loading error details:");
-            System.err.println("User: " + user.getClass().getSimpleName());
-            System.err.println("Role: " + user.getRole());
-            System.err.println("Error: " + e.getMessage());
+        } else {
+            System.err.println("Controller is null for " + fxmlFile);
         }
+        
+        Stage stage = (Stage) loginButton.getScene().getWindow();
+        
+        // Remember current state
+        boolean wasMaximized = stage.isMaximized();
+        boolean wasFullScreen = stage.isFullScreen();
+        
+        stage.setTitle(title);
+        stage.setScene(scene);
+        
+        // Restore window state
+        if (wasFullScreen) {
+            stage.setFullScreen(true);
+        } else if (wasMaximized) {
+            stage.setMaximized(true);
+        }
+        
+        // Add full screen toggle for dashboard
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            } else if (event.isAltDown() && event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                stage.setFullScreen(!stage.isFullScreen());
+            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE && stage.isFullScreen()) {
+                stage.setFullScreen(false);
+            }
+        });
+        
+        System.out.println("Dashboard loaded successfully for " + user.getRole());
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert("Error", "Failed to open dashboard: " + e.getMessage());
+        System.err.println("Dashboard loading error details:");
+        System.err.println("User: " + user.getClass().getSimpleName());
+        System.err.println("Role: " + user.getRole());
+        System.err.println("Error: " + e.getMessage());
+        System.err.println("Stack trace:");
+        e.printStackTrace();
     }
+}
     
     @FXML
     private void handleRegister() {
@@ -193,5 +200,3 @@ public class LoginController {
         alert.showAndWait();
     }
 }
-
-
