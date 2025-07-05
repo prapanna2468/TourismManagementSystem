@@ -4,6 +4,7 @@ import com.tourism.Main;
 import com.tourism.models.*;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
+import com.tourism.utils.DialogUtils;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -34,7 +35,7 @@ public class LoginController {
         String password = passwordField.getText().trim();
         
         if (username.isEmpty() || password.isEmpty()) {
-            showAlert("Error", "Please fill in all fields!");
+            DialogUtils.showError("Error", "Please fill in all fields!");
             return;
         }
         
@@ -63,7 +64,7 @@ public class LoginController {
             }
         }
         
-        showAlert("Error", "Invalid username or password!");
+        DialogUtils.showError("Error", "Invalid username or password!");
     }
     
     private void openDashboard(Person user) {
@@ -88,7 +89,7 @@ public class LoginController {
                     title = "Journey - Admin Dashboard";
                     break;
                 default:
-                    showAlert("Error", "Unknown user role: " + user.getRole());
+                    DialogUtils.showError("Error", "Unknown user role: " + user.getRole());
                     return;
             }
         
@@ -97,7 +98,7 @@ public class LoginController {
             // Check if resource exists
             if (getClass().getResource(fxmlFile) == null) {
                 System.err.println("FXML file not found: " + fxmlFile);
-                showAlert("Error", "Dashboard file not found: " + fxmlFile);
+                DialogUtils.showError("Error", "Dashboard file not found: " + fxmlFile);
                 return;
             }
         
@@ -130,7 +131,7 @@ public class LoginController {
         
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Error", "Failed to open dashboard: " + e.getMessage());
+            DialogUtils.showError("Error", "Failed to open dashboard: " + e.getMessage());
             System.err.println("Dashboard loading error details:");
             System.err.println("User: " + user.getClass().getSimpleName());
             System.err.println("Role: " + user.getRole());
@@ -151,23 +152,15 @@ public class LoginController {
             
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Error", "Failed to open registration form!");
+            DialogUtils.showError("Error", "Failed to open registration form!");
         }
     }
     
     @FXML
     private void handleExit() {
         // Show confirmation dialog before exiting
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Exit Application");
-        confirmAlert.setHeaderText("Are you sure you want to exit?");
-        confirmAlert.setContentText("This will close the Journey application.");
-        
-        ButtonType exitButtonType = new ButtonType("Exit");
-        ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        confirmAlert.getButtonTypes().setAll(exitButtonType, cancelButtonType);
-        
-        if (confirmAlert.showAndWait().orElse(cancelButtonType) == exitButtonType) {
+        if (DialogUtils.showConfirmation("Exit Application", 
+            "Are you sure you want to exit?\nThis will close the Journey application.")) {
             Platform.exit();
             System.exit(0);
         }
@@ -190,10 +183,6 @@ public class LoginController {
     }
     
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(LanguageManager.getText(title));
-        alert.setHeaderText(null);
-        alert.setContentText(LanguageManager.getText(message));
-        alert.showAndWait();
+        DialogUtils.showInfo(title, message);
     }
 }
