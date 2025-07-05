@@ -39,6 +39,7 @@ public class Guide extends Person {
     
     public double getTotalEarnings() { return totalEarnings; }
     public void addEarnings(double earnings) { this.totalEarnings += earnings; }
+    public void setTotalEarnings(double totalEarnings) { this.totalEarnings = totalEarnings; }
     
     public List<Booking> getAssignedBookings() { return new ArrayList<>(assignedBookings); }
     public void assignBooking(Booking booking) { 
@@ -46,9 +47,21 @@ public class Guide extends Person {
             this.assignedBookings = new ArrayList<>();
         }
         this.assignedBookings.add(booking);
-        // Calculate commission (12% of booking price)
-        double commission = booking.getTotalPrice() * 0.12;
+        // Calculate commission (30% of booking price)
+        double commission = booking.getTotalPrice() * 0.30;
         addEarnings(commission);
+        System.out.println("Guide " + getUsername() + " earned $" + String.format("%.2f", commission) + " from booking " + booking.getBookingId());
+    }
+    
+    public void removeBooking(Booking booking) {
+        if (this.assignedBookings != null) {
+            this.assignedBookings.remove(booking);
+            // Remove commission (30% of booking price)
+            double commission = booking.getTotalPrice() * 0.30;
+            this.totalEarnings -= commission;
+            if (this.totalEarnings < 0) this.totalEarnings = 0;
+            System.out.println("Guide " + getUsername() + " lost $" + String.format("%.2f", commission) + " from cancelled booking " + booking.getBookingId());
+        }
     }
     
     public boolean isAvailable() { return isAvailable; }
@@ -72,7 +85,7 @@ public class Guide extends Person {
     
     // Guide-specific methods
     public double calculateCommission(double bookingPrice) {
-        return bookingPrice * 0.12; // 12% commission
+        return bookingPrice * 0.30; // 30% commission
     }
     
     public boolean canTakeBooking() {
