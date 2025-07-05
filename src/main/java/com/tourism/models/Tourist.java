@@ -23,7 +23,39 @@ public class Tourist extends Person {
     public List<Booking> getBookings() { return new ArrayList<>(bookings); } // Return copy for encapsulation
     public void addBooking(Booking booking) { 
         this.bookings.add(booking);
-        this.totalSpent += booking.getTotalPrice();
+        if ("Confirmed".equals(booking.getStatus()) || "Completed".equals(booking.getStatus())) {
+            this.totalSpent += booking.getTotalPrice();
+        }
+    }
+    
+    public void removeBooking(Booking booking) {
+        if (this.bookings.remove(booking)) {
+            // Only reduce total spent if the booking was confirmed/completed
+            if ("Confirmed".equals(booking.getStatus()) || "Completed".equals(booking.getStatus())) {
+                this.totalSpent -= booking.getTotalPrice();
+                if (this.totalSpent < 0) this.totalSpent = 0;
+            }
+        }
+    }
+    
+    public void updateBookingInList(Booking updatedBooking) {
+        for (int i = 0; i < bookings.size(); i++) {
+            if (bookings.get(i).getBookingId() == updatedBooking.getBookingId()) {
+                // Remove old spending if it was confirmed
+                Booking oldBooking = bookings.get(i);
+                if ("Confirmed".equals(oldBooking.getStatus()) || "Completed".equals(oldBooking.getStatus())) {
+                    this.totalSpent -= oldBooking.getTotalPrice();
+                }
+                
+                // Add new spending if it's confirmed
+                if ("Confirmed".equals(updatedBooking.getStatus()) || "Completed".equals(updatedBooking.getStatus())) {
+                    this.totalSpent += updatedBooking.getTotalPrice();
+                }
+                
+                bookings.set(i, updatedBooking);
+                break;
+            }
+        }
     }
     
     public double getTotalSpent() { return totalSpent; }
