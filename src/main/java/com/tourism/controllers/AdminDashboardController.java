@@ -4,6 +4,7 @@ import com.tourism.Main;
 import com.tourism.models.*;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
+import com.tourism.utils.DialogUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -179,10 +180,10 @@ public class AdminDashboardController {
             FileHandler.saveGuide(newGuide);
             guides.add(newGuide);
             clearGuideFields();
-            showAlert("Success", "Guide added successfully!");
+            DialogUtils.showInfo("Success", "Guide added successfully!");
             
         } catch (Exception e) {
-            showAlert("Error", "Failed to add guide!");
+            DialogUtils.showError("Error", "Failed to add guide!");
         }
     }
     
@@ -190,7 +191,7 @@ public class AdminDashboardController {
     private void handleUpdateGuide() {
         Guide selectedGuide = guidesTable.getSelectionModel().getSelectedItem();
         if (selectedGuide == null) {
-            showAlert("Error", "Please select a guide to update!");
+            DialogUtils.showError("Error", "Please select a guide to update!");
             return;
         }
         
@@ -203,10 +204,10 @@ public class AdminDashboardController {
             selectedGuide.setExperienceYears(Integer.parseInt(guideExperienceField.getText().trim()));
             
             guidesTable.refresh();
-            showAlert("Success", "Guide updated successfully!");
+            DialogUtils.showInfo("Success", "Guide updated successfully!");
             
         } catch (Exception e) {
-            showAlert("Error", "Failed to update guide!");
+            DialogUtils.showError("Error", "Failed to update guide!");
         }
     }
     
@@ -214,17 +215,13 @@ public class AdminDashboardController {
     private void handleDeleteGuide() {
         Guide selectedGuide = guidesTable.getSelectionModel().getSelectedItem();
         if (selectedGuide == null) {
-            showAlert("Error", "Please select a guide to delete!");
+            DialogUtils.showError("Error", "Please select a guide to delete!");
             return;
         }
         
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirm Deletion");
-        confirmAlert.setContentText("Are you sure you want to delete this guide?");
-        
-        if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+        if (DialogUtils.showConfirmation("Confirm Deletion", "Are you sure you want to delete this guide?")) {
             guides.remove(selectedGuide);
-            showAlert("Success", "Guide deleted successfully!");
+            DialogUtils.showInfo("Success", "Guide deleted successfully!");
         }
     }
     
@@ -245,10 +242,10 @@ public class AdminDashboardController {
             FileHandler.saveAttraction(newAttraction);
             attractions.add(newAttraction);
             clearAttractionFields();
-            showAlert("Success", "Attraction added successfully!");
+            DialogUtils.showInfo("Success", "Attraction added successfully!");
             
         } catch (Exception e) {
-            showAlert("Error", "Failed to add attraction!");
+            DialogUtils.showError("Error", "Failed to add attraction!");
         }
     }
     
@@ -256,7 +253,7 @@ public class AdminDashboardController {
     private void handleUpdateAttraction() {
         Attraction selectedAttraction = attractionsTable.getSelectionModel().getSelectedItem();
         if (selectedAttraction == null) {
-            showAlert("Error", "Please select an attraction to update!");
+            DialogUtils.showError("Error", "Please select an attraction to update!");
             return;
         }
         
@@ -270,10 +267,10 @@ public class AdminDashboardController {
             selectedAttraction.setBasePrice(Double.parseDouble(attractionPriceField.getText().trim()));
             
             attractionsTable.refresh();
-            showAlert("Success", "Attraction updated successfully!");
+            DialogUtils.showInfo("Success", "Attraction updated successfully!");
             
         } catch (Exception e) {
-            showAlert("Error", "Failed to update attraction!");
+            DialogUtils.showError("Error", "Failed to update attraction!");
         }
     }
     
@@ -281,17 +278,13 @@ public class AdminDashboardController {
     private void handleDeleteAttraction() {
         Attraction selectedAttraction = attractionsTable.getSelectionModel().getSelectedItem();
         if (selectedAttraction == null) {
-            showAlert("Error", "Please select an attraction to delete!");
+            DialogUtils.showError("Error", "Please select an attraction to delete!");
             return;
         }
         
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirm Deletion");
-        confirmAlert.setContentText("Are you sure you want to delete this attraction?");
-        
-        if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+        if (DialogUtils.showConfirmation("Confirm Deletion", "Are you sure you want to delete this attraction?")) {
             attractions.remove(selectedAttraction);
-            showAlert("Success", "Attraction deleted successfully!");
+            DialogUtils.showInfo("Success", "Attraction deleted successfully!");
         }
     }
     
@@ -302,7 +295,7 @@ public class AdminDashboardController {
         Guide selectedGuide = assignGuideCombo.getValue();
         
         if (selectedBooking == null || selectedGuide == null) {
-            showAlert("Error", "Please select both booking and guide!");
+            DialogUtils.showError("Error", "Please select both booking and guide!");
             return;
         }
         
@@ -332,7 +325,6 @@ public class AdminDashboardController {
             
             System.out.println("Guide " + selectedGuide.getUsername() + " assigned to booking " + selectedBooking.getBookingId());
             System.out.println("Guide earnings updated: $" + selectedGuide.getTotalEarnings());
-            
         } catch (Exception e) {
             System.err.println("Error saving guide assignment: " + e.getMessage());
             e.printStackTrace();
@@ -344,7 +336,7 @@ public class AdminDashboardController {
         updateAnalytics();
         
         double commission = selectedGuide.calculateCommission(selectedBooking.getTotalPrice());
-        showAlert("Success", "Guide assigned successfully!\n" +
+        DialogUtils.showInfo("Success", "Guide assigned successfully!\n" +
             "Guide: " + selectedGuide.getFullName() + "\n" +
             "Commission: $" + String.format("%.2f", commission) + " (30%)\n" +
             "Total Earnings: $" + String.format("%.2f", selectedGuide.getTotalEarnings()));
@@ -356,28 +348,24 @@ public class AdminDashboardController {
         String newStatus = bookingStatusCombo.getValue();
         
         if (selectedBooking == null || newStatus == null) {
-            showAlert("Error", "Please select booking and status!");
+            DialogUtils.showError("Error", "Please select booking and status!");
             return;
         }
         
         selectedBooking.setStatus(newStatus);
         bookingsTable.refresh();
-        showAlert("Success", "Booking status updated successfully!");
+        DialogUtils.showInfo("Success", "Booking status updated successfully!");
     }
     
     @FXML
     private void handleDeleteBooking() {
         Booking selectedBooking = bookingsTable.getSelectionModel().getSelectedItem();
         if (selectedBooking == null) {
-            showAlert("Error", "Please select a booking to delete!");
+            DialogUtils.showError("Error", "Please select a booking to delete!");
             return;
         }
         
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirm Deletion");
-        confirmAlert.setContentText("Are you sure you want to delete this booking?");
-        
-        if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+        if (DialogUtils.showConfirmation("Confirm Deletion", "Are you sure you want to delete this booking?")) {
             // Remove guide earnings if assigned
             if (!selectedBooking.getGuideUsername().isEmpty()) {
                 Guide assignedGuide = guides.stream()
@@ -391,7 +379,7 @@ public class AdminDashboardController {
             
             bookings.remove(selectedBooking);
             updateAnalytics();
-            showAlert("Success", "Booking deleted successfully!");
+            DialogUtils.showInfo("Success", "Booking deleted successfully!");
         }
     }
     
@@ -469,41 +457,41 @@ public class AdminDashboardController {
             guidePhoneField.getText().trim().isEmpty() ||
             guideLanguagesField.getText().trim().isEmpty() ||
             guideExperienceField.getText().trim().isEmpty()) {
-            
-            showAlert("Error", "Please fill in all guide fields!");
-            return false;
-        }
         
-        try {
-            Integer.parseInt(guideExperienceField.getText().trim());
-        } catch (NumberFormatException e) {
-            showAlert("Error", "Please enter valid experience years!");
-            return false;
-        }
-        
-        return true;
+        DialogUtils.showError("Error", "Please fill in all guide fields!");
+        return false;
     }
     
-    private boolean validateAttractionFields() {
-        if (attractionNameField.getText().trim().isEmpty() ||
-            attractionLocationField.getText().trim().isEmpty() ||
-            attractionAltitudeCombo.getValue() == null ||
-            attractionDifficultyCombo.getValue() == null ||
-            attractionPriceField.getText().trim().isEmpty()) {
-            
-            showAlert("Error", "Please fill in all attraction fields!");
-            return false;
-        }
-        
-        try {
-            Double.parseDouble(attractionPriceField.getText().trim());
-        } catch (NumberFormatException e) {
-            showAlert("Error", "Please enter valid price!");
-            return false;
-        }
-        
-        return true;
+    try {
+        Integer.parseInt(guideExperienceField.getText().trim());
+    } catch (NumberFormatException e) {
+        DialogUtils.showError("Error", "Please enter valid experience years!");
+        return false;
     }
+    
+    return true;
+}
+
+private boolean validateAttractionFields() {
+    if (attractionNameField.getText().trim().isEmpty() ||
+        attractionLocationField.getText().trim().isEmpty() ||
+        attractionAltitudeCombo.getValue() == null ||
+        attractionDifficultyCombo.getValue() == null ||
+        attractionPriceField.getText().trim().isEmpty()) {
+        
+        DialogUtils.showError("Error", "Please fill in all attraction fields!");
+        return false;
+    }
+    
+    try {
+        Double.parseDouble(attractionPriceField.getText().trim());
+    } catch (NumberFormatException e) {
+        DialogUtils.showError("Error", "Please enter valid price!");
+        return false;
+    }
+    
+    return true;
+}
     
     // Utility Methods
     private void clearGuideFields() {
@@ -528,7 +516,7 @@ public class AdminDashboardController {
     private void handleRefreshData() {
         loadAllData();
         updateAnalytics();
-        showAlert("Success", "Data refreshed successfully!");
+        DialogUtils.showInfo("Success", "Data refreshed successfully!");
     }
     
     @FXML
@@ -568,10 +556,6 @@ public class AdminDashboardController {
     }
     
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(LanguageManager.getText(title));
-        alert.setHeaderText(null);
-        alert.setContentText(LanguageManager.getText(message));
-        alert.showAndWait();
+        DialogUtils.showInfo(title, message);
     }
 }
