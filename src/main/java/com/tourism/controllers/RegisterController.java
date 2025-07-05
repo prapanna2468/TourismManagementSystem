@@ -2,6 +2,7 @@ package com.tourism.controllers;
 
 import com.tourism.Main;
 import com.tourism.models.*;
+import com.tourism.utils.DialogUtils;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
 import javafx.fxml.FXML;
@@ -98,7 +99,7 @@ public class RegisterController {
         
         // Check if username already exists
         if (isUsernameExists(username)) {
-            showAlert("Error", "Username already exists! Please choose a different one.");
+            DialogUtils.showError("Error", "Username already exists! Please choose a different one.");
             return;
         }
         
@@ -119,14 +120,14 @@ public class RegisterController {
                 FileHandler.saveGuide(guide);
             }
             
-            showAlert("Success", "Registration successful! You can now login with your credentials.");
+            DialogUtils.showInfo("Success", "Registration successful! You can now login with your credentials.");
             handleBack();
             
         } catch (NumberFormatException e) {
-            showAlert("Error", "Please enter a valid number for experience years!");
+            DialogUtils.showError("Error", "Please enter a valid number for experience years!");
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Error", "Registration failed! Please check all fields and try again.");
+            DialogUtils.showError("Error", "Registration failed! Please check all fields and try again.");
         }
     }
     
@@ -139,26 +140,26 @@ public class RegisterController {
             phoneField.getText().trim().isEmpty() ||
             roleComboBox.getValue() == null) {
             
-            showAlert("Error", "Please fill in all required fields!");
+            DialogUtils.showError("Error", "Please fill in all required fields!");
             return false;
         }
         
         // Validate email format
         String email = emailField.getText().trim();
         if (!email.contains("@") || !email.contains(".")) {
-            showAlert("Error", "Please enter a valid email address!");
+            DialogUtils.showError("Error", "Please enter a valid email address!");
             return false;
         }
         
         // Validate username length
         if (usernameField.getText().trim().length() < 3) {
-            showAlert("Error", "Username must be at least 3 characters long!");
+            DialogUtils.showError("Error", "Username must be at least 3 characters long!");
             return false;
         }
         
         // Validate password length
         if (passwordField.getText().trim().length() < 3) {
-            showAlert("Error", "Password must be at least 3 characters long!");
+            DialogUtils.showError("Error", "Password must be at least 3 characters long!");
             return false;
         }
         
@@ -167,30 +168,30 @@ public class RegisterController {
         // Role-specific validation
         if ("Tourist".equals(role)) {
             if (nationalityField.getText().trim().isEmpty()) {
-                showAlert("Error", "Please enter your nationality!");
+                DialogUtils.showError("Error", "Please enter your nationality!");
                 return false;
             }
         }
         
         if ("Guide".equals(role)) {
             if (languagesField.getText().trim().isEmpty()) {
-                showAlert("Error", "Please enter the languages you speak!");
+                DialogUtils.showError("Error", "Please enter the languages you speak!");
                 return false;
             }
             
             if (experienceField.getText().trim().isEmpty()) {
-                showAlert("Error", "Please enter your years of experience!");
+                DialogUtils.showError("Error", "Please enter your years of experience!");
                 return false;
             }
             
             try {
                 int experience = Integer.parseInt(experienceField.getText().trim());
                 if (experience < 0 || experience > 50) {
-                    showAlert("Error", "Please enter a valid experience between 0 and 50 years!");
+                    DialogUtils.showError("Error", "Please enter a valid experience between 0 and 50 years!");
                     return false;
                 }
             } catch (NumberFormatException e) {
-                showAlert("Error", "Please enter a valid number for experience years!");
+                DialogUtils.showError("Error", "Please enter a valid number for experience years!");
                 return false;
             }
         }
@@ -243,13 +244,5 @@ public class RegisterController {
         nationalityLabel.setText(LanguageManager.getText("Nationality"));
         languagesLabel.setText(LanguageManager.getText("Languages"));
         experienceLabel.setText(LanguageManager.getText("Experience"));
-    }
-    
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(LanguageManager.getText(title));
-        alert.setHeaderText(null);
-        alert.setContentText(LanguageManager.getText(message));
-        alert.showAndWait();
     }
 }
