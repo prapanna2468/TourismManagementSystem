@@ -114,9 +114,11 @@ public class Booking {
     
     @Override
     public String toString() {
+        String guideInfo = guideUsername.isEmpty() ? "Not Assigned" : guideUsername;
+        
         return "Booking ID: " + bookingId + "\n" +
                "Tourist: " + touristUsername + "\n" +
-               "Guide: " + (guideUsername.isEmpty() ? "Not Assigned" : guideUsername) + "\n" +
+               "Guide: " + guideInfo + "\n" +
                "Attraction: " + attraction.getName() + "\n" +
                "Trek Date: " + trekDate + "\n" +
                "Status: " + status + "\n" +
