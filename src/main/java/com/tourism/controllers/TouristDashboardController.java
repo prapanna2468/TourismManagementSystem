@@ -221,9 +221,15 @@ public class TouristDashboardController {
             return;
         }
         
-        // For simplicity, we'll just show the booking details
-        // In a full implementation, you'd open an edit dialog
-        showAlert("Booking Details", selectedBooking.toString());
+        // Show detailed booking information including assigned guide
+        String guideInfo = selectedBooking.getGuideUsername().isEmpty() ? 
+            "Not Assigned" : selectedBooking.getGuideUsername();
+        
+        String bookingDetails = selectedBooking.toString() + "\n\n" +
+            "Assigned Guide: " + guideInfo + "\n" +
+            selectedBooking.getFestivalDiscountMessage();
+        
+        showAlert("Booking Details", bookingDetails);
     }
     
     @FXML
@@ -245,10 +251,16 @@ public class TouristDashboardController {
         confirmAlert.setContentText("Are you sure you want to cancel this booking?");
         
         if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            // Update tourist's spending before cancelling
+            currentUser.removeBooking(selectedBooking);
+            
             selectedBooking.cancelBooking();
             bookingsTable.refresh();
+            
+            // Update dashboard info to reflect new spending
             dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-            showAlert("Success", "Booking cancelled successfully!");
+            
+            showAlert("Success", "Booking cancelled successfully! Your total spending has been updated.");
         }
     }
     
