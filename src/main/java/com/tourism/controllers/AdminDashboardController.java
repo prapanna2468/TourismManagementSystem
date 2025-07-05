@@ -317,16 +317,37 @@ public class AdminDashboardController {
             }
         }
         
+        // Assign new guide
         selectedBooking.setGuideUsername(selectedGuide.getUsername());
         selectedGuide.assignBooking(selectedBooking);
         
+        // Save all changes to files
+        try {
+            // Convert ObservableList to regular List for saving
+            List<Booking> bookingList = new ArrayList<>(bookings);
+            List<Guide> guideList = new ArrayList<>(guides);
+            
+            FileHandler.saveAllBookings(bookingList);
+            FileHandler.saveAllGuides(guideList);
+            
+            System.out.println("Guide " + selectedGuide.getUsername() + " assigned to booking " + selectedBooking.getBookingId());
+            System.out.println("Guide earnings updated: $" + selectedGuide.getTotalEarnings());
+            
+        } catch (Exception e) {
+            System.err.println("Error saving guide assignment: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        // Refresh UI
         bookingsTable.refresh();
         guidesTable.refresh();
         updateAnalytics();
         
-        showAlert("Success", "Guide assigned successfully! Guide will earn $" + 
-            String.format("%.2f", selectedGuide.calculateCommission(selectedBooking.getTotalPrice())) + 
-            " (30% commission)");
+        double commission = selectedGuide.calculateCommission(selectedBooking.getTotalPrice());
+        showAlert("Success", "Guide assigned successfully!\n" +
+            "Guide: " + selectedGuide.getFullName() + "\n" +
+            "Commission: $" + String.format("%.2f", commission) + " (30%)\n" +
+            "Total Earnings: $" + String.format("%.2f", selectedGuide.getTotalEarnings()));
     }
     
     @FXML
