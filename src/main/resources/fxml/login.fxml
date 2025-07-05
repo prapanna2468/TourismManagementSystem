@@ -5,11 +5,25 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.LoginController">
-   <center>
-      <VBox alignment="CENTER" style="-fx-background-color: linear-gradient(to bottom, #2E8B57, #228B22);" BorderPane.alignment="CENTER">
+<StackPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.LoginController">
+   <children>
+      <!-- Background -->
+      <Rectangle width="2000.0" height="2000.0" style="-fx-fill: linear-gradient(to bottom, #2E8B57, #228B22);" />
+      
+      <!-- Exit Button - Top Right Corner -->
+      <HBox alignment="TOP_RIGHT" StackPane.alignment="TOP_RIGHT">
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
          <children>
-            <VBox alignment="CENTER" maxWidth="450.0" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0, 0, 8);">
+            <Button fx:id="exitButton" onAction="#handleExit" style="-fx-background-color: #FF4444; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-height: 40; -fx-pref-width: 80; -fx-font-size: 14px; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 2);" text="Exit" />
+         </children>
+      </HBox>
+      
+      <!-- Main Login Form -->
+      <VBox alignment="CENTER" maxWidth="450.0">
+         <children>
+            <VBox alignment="CENTER" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 15, 0, 0, 8);">
                <padding>
                   <Insets bottom="40.0" left="50.0" right="50.0" top="40.0" />
                </padding>
@@ -61,19 +75,9 @@
                         <Button fx:id="languageToggleButton" onAction="#toggleLanguage" style="-fx-background-color: #4682B4; -fx-text-fill: white; -fx-background-radius: 15; -fx-pref-height: 35;" text="English" />
                      </children>
                   </VBox>
-                  
-                  <VBox alignment="CENTER" spacing="5.0">
-                     <VBox.margin>
-                        <Insets top="30.0" />
-                     </VBox.margin>
-                     <children>
-                        <Label text="Default Admin: Prapanna / 123" style="-fx-font-size: 11px; -fx-text-fill: #888; -fx-font-style: italic;" />
-                        <Label text="Default Guide: ram_guide / ram123" style="-fx-font-size: 11px; -fx-text-fill: #888; -fx-font-style: italic;" />
-                     </children>
-                  </VBox>
                </children>
             </VBox>
          </children>
       </VBox>
-   </center>
-</BorderPane>
+   </children>
+</StackPane>
