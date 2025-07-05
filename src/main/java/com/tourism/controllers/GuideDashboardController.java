@@ -177,7 +177,13 @@ public class GuideDashboardController implements Initializable {
             }
         
             List<Booking> allBookings = FileHandler.loadBookings();
-            assignedBookings = FXCollections.observableArrayList();
+            
+            // CLEAR existing bookings to prevent duplicates
+            if (assignedBookings == null) {
+                assignedBookings = FXCollections.observableArrayList();
+            } else {
+                assignedBookings.clear(); // Clear existing bookings
+            }
         
             System.out.println("Loading bookings for guide: " + currentUser.getUsername());
             System.out.println("Total bookings in system: " + allBookings.size());
@@ -185,16 +191,13 @@ public class GuideDashboardController implements Initializable {
             for (Booking booking : allBookings) {
                 System.out.println("Checking booking " + booking.getBookingId() + 
                     " - Guide: '" + booking.getGuideUsername() + "' - Status: " + booking.getStatus());
-            
+        
                 if (booking.getGuideUsername() != null && 
                     booking.getGuideUsername().equals(currentUser.getUsername())) {
-                
+            
                     assignedBookings.add(booking);
                     System.out.println("✓ Added assigned booking: " + booking.getBookingId() + 
                         " for " + booking.getAttraction().getName());
-                
-                    // Add to current user's booking list if not already there
-                    currentUser.assignBooking(booking);
                 }
             }
         
@@ -255,11 +258,11 @@ public class GuideDashboardController implements Initializable {
             // Reload all data from files
             initializeDashboard();
             loadImportantUpdates();
-            
+        
             showAlert("Success", "Dashboard refreshed successfully!\n" +
                 "Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()) + "\n" +
-                "Assigned Bookings: " + assignedBookings.size());
-            
+                "Assigned Bookings: " + (assignedBookings != null ? assignedBookings.size() : 0));
+        
         } catch (Exception e) {
             System.err.println("Error refreshing dashboard: " + e.getMessage());
             showAlert("Error", "Failed to refresh dashboard");
