@@ -46,11 +46,19 @@ public class Guide extends Person {
         if (this.assignedBookings == null) {
             this.assignedBookings = new ArrayList<>();
         }
-        this.assignedBookings.add(booking);
-        // Calculate commission (30% of booking price)
-        double commission = booking.getTotalPrice() * 0.30;
-        addEarnings(commission);
-        System.out.println("Guide " + getUsername() + " earned $" + String.format("%.2f", commission) + " from booking " + booking.getBookingId());
+        
+        // Check if booking is already assigned to avoid duplicates
+        boolean alreadyAssigned = this.assignedBookings.stream()
+            .anyMatch(b -> b.getBookingId() == booking.getBookingId());
+        
+        if (!alreadyAssigned) {
+            this.assignedBookings.add(booking);
+            // Calculate commission (30% of booking price)
+            double commission = booking.getTotalPrice() * 0.30;
+            addEarnings(commission);
+            System.out.println("Guide " + getUsername() + " earned $" + String.format("%.2f", commission) + 
+                " from booking " + booking.getBookingId() + ". Total earnings: $" + String.format("%.2f", totalEarnings));
+        }
     }
     
     public void removeBooking(Booking booking) {
