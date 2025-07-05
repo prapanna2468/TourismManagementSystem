@@ -82,6 +82,25 @@ public class FileHandler {
         }
         return tourists;
     }
+
+    // Method to save all tourists (overwrite existing file)
+    public static void saveAllTourists(List<Tourist> tourists) {
+        try (FileWriter writer = new FileWriter(TOURISTS_FILE)) {
+            for (Tourist tourist : tourists) {
+                writer.write("Username: " + tourist.getUsername() + "\n");
+                writer.write("Password: " + tourist.getPassword() + "\n");
+                writer.write("Full Name: " + tourist.getFullName() + "\n");
+                writer.write("Email: " + tourist.getEmail() + "\n");
+                writer.write("Phone: " + tourist.getPhone() + "\n");
+                writer.write("Nationality: " + tourist.getNationality() + "\n");
+                writer.write("Role: Tourist\n");
+                writer.write("Total Spent: " + tourist.getTotalSpent() + "\n");
+                writer.write(SEPARATOR + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     
     // Guide operations
     public static void saveGuide(Guide guide) {
@@ -150,6 +169,26 @@ public class FileHandler {
             System.out.println("Guides file not found, returning empty list");
         }
         return guides;
+    }
+
+    // Method to save all guides (overwrite existing file)
+    public static void saveAllGuides(List<Guide> guides) {
+        try (FileWriter writer = new FileWriter(GUIDES_FILE)) {
+            for (Guide guide : guides) {
+                writer.write("Username: " + guide.getUsername() + "\n");
+                writer.write("Password: " + guide.getPassword() + "\n");
+                writer.write("Full Name: " + guide.getFullName() + "\n");
+                writer.write("Email: " + guide.getEmail() + "\n");
+                writer.write("Phone: " + guide.getPhone() + "\n");
+                writer.write("Languages: " + String.join(", ", guide.getLanguages()) + "\n");
+                writer.write("Experience: " + guide.getExperienceYears() + "\n");
+                writer.write("Role: Guide\n");
+                writer.write("Total Earnings: " + guide.getTotalEarnings() + "\n");
+                writer.write(SEPARATOR + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     // Attraction operations
@@ -259,6 +298,25 @@ public class FileHandler {
             // File doesn't exist yet, return empty list
         }
         return bookings;
+    }
+
+    // Method to save all bookings (overwrite existing file)
+    public static void saveAllBookings(List<Booking> bookings) {
+        try (FileWriter writer = new FileWriter(BOOKINGS_FILE)) {
+            for (Booking booking : bookings) {
+                writer.write("Booking ID: " + booking.getBookingId() + "\n");
+                writer.write("Tourist: " + booking.getTouristUsername() + "\n");
+                writer.write("Guide: " + booking.getGuideUsername() + "\n");
+                writer.write("Attraction: " + booking.getAttraction().getName() + "\n");
+                writer.write("Trek Date: " + booking.getTrekDate() + "\n");
+                writer.write("Status: " + booking.getStatus() + "\n");
+                writer.write("Total Price: " + booking.getTotalPrice() + "\n");
+                writer.write("Festival Discount: " + booking.isFestivalDiscountApplied() + "\n");
+                writer.write(SEPARATOR + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
     // Initialize default data
