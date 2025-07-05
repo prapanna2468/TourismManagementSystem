@@ -1,5 +1,6 @@
 package com.tourism.controllers;
 
+import com.tourism.Main;
 import com.tourism.models.*;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
@@ -479,12 +480,11 @@ public class AdminDashboardController {
     private void handleLogout() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-            Scene scene = new Scene(loader.load(), 800, 600);
-            
-            Stage stage = (Stage) logoutButton.getScene().getWindow();
-            stage.setTitle("Nepal Tourism Management System");
-            stage.setScene(scene);
-            
+            Scene scene = new Scene(loader.load());
+        
+            // Use the new scene switching method to maintain full screen
+            Main.switchScene(scene, "Journey - Nepal Tourism System");
+        
         } catch (Exception e) {
             e.printStackTrace();
         }
