@@ -36,6 +36,7 @@ public class FileHandler {
             writer.write("Phone: " + tourist.getPhone() + "\n");
             writer.write("Nationality: " + tourist.getNationality() + "\n");
             writer.write("Role: Tourist\n");
+            writer.write("Total Spent: " + tourist.getTotalSpent() + "\n");
             writer.write(SEPARATOR + "\n");
         } catch (IOException e) {
             e.printStackTrace();
@@ -59,6 +60,15 @@ public class FileHandler {
                             data.get("Phone"),
                             data.get("Nationality")
                         );
+                        // After creating the tourist, set the total spent if available
+                        if (data.containsKey("Total Spent")) {
+                            try {
+                                double spent = Double.parseDouble(data.get("Total Spent"));
+                                tourist.setTotalSpent(spent);
+                            } catch (NumberFormatException e) {
+                                System.err.println("Error parsing tourist spending: " + e.getMessage());
+                            }
+                        }
                         tourists.add(tourist);
                         data.clear();
                     }
@@ -84,6 +94,7 @@ public class FileHandler {
             writer.write("Languages: " + String.join(", ", guide.getLanguages()) + "\n");
             writer.write("Experience: " + guide.getExperienceYears() + "\n");
             writer.write("Role: Guide\n");
+            writer.write("Total Earnings: " + guide.getTotalEarnings() + "\n");
             writer.write(SEPARATOR + "\n");
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,6 +123,15 @@ public class FileHandler {
                                 languages,
                                 experience
                             );
+                            // After creating the guide, set the total earnings if available
+                            if (data.containsKey("Total Earnings")) {
+                                try {
+                                    double earnings = Double.parseDouble(data.get("Total Earnings"));
+                                    guide.setTotalEarnings(earnings);
+                                } catch (NumberFormatException e) {
+                                    System.err.println("Error parsing guide earnings: " + e.getMessage());
+                                }
+                            }
                             guides.add(guide);
                         } catch (NumberFormatException e) {
                             System.err.println("Error parsing guide experience: " + e.getMessage());
@@ -271,4 +291,3 @@ public class FileHandler {
         }
     }
 }
-
