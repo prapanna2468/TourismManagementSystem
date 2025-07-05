@@ -4,6 +4,7 @@ import com.tourism.Main;
 import com.tourism.models.*;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,6 +18,7 @@ public class LoginController {
     @FXML private Button loginButton;
     @FXML private Button registerButton;
     @FXML private Button languageToggleButton;
+    @FXML private Button exitButton;
     @FXML private Label titleLabel;
     @FXML private Label usernameLabel;
     @FXML private Label passwordLabel;
@@ -154,6 +156,24 @@ public class LoginController {
     }
     
     @FXML
+    private void handleExit() {
+        // Show confirmation dialog before exiting
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Exit Application");
+        confirmAlert.setHeaderText("Are you sure you want to exit?");
+        confirmAlert.setContentText("This will close the Journey application.");
+        
+        ButtonType exitButtonType = new ButtonType("Exit");
+        ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        confirmAlert.getButtonTypes().setAll(exitButtonType, cancelButtonType);
+        
+        if (confirmAlert.showAndWait().orElse(cancelButtonType) == exitButtonType) {
+            Platform.exit();
+            System.exit(0);
+        }
+    }
+    
+    @FXML
     private void toggleLanguage() {
         LanguageManager.toggleLanguage();
         updateLanguage();
@@ -166,6 +186,7 @@ public class LoginController {
         loginButton.setText(LanguageManager.getText("Login"));
         registerButton.setText(LanguageManager.getText("Register"));
         languageToggleButton.setText(LanguageManager.getCurrentLanguage());
+        exitButton.setText(LanguageManager.getText("Exit"));
     }
     
     private void showAlert(String title, String message) {
