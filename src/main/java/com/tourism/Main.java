@@ -10,86 +10,57 @@ import com.tourism.utils.FileHandler;
 
 public class Main extends Application {
     
-    private boolean wasMaximized = false;
+    public static Stage primaryStage; // Make it accessible globally
     
     @Override
     public void start(Stage primaryStage) throws Exception {
+        Main.primaryStage = primaryStage;
+        
         // Initialize data files
         FileHandler.initializeDataFiles();
         
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-        Scene scene = new Scene(loader.load(), 900, 700);
+        Scene scene = new Scene(loader.load(), 1920, 1080);
         
-        primaryStage.setTitle("Nepal Tourism Management System");
+        primaryStage.setTitle("Journey - Nepal Tourism System");
         primaryStage.setScene(scene);
         
-        // Enable resizing
-        primaryStage.setResizable(true);
+        // Disable resizing to maintain full screen
+        primaryStage.setResizable(false);
         
-        // Set minimum window size
-        primaryStage.setMinWidth(800);
-        primaryStage.setMinHeight(600);
+        // Set to full screen immediately
+        primaryStage.setFullScreen(true);
+        primaryStage.setFullScreenExitHint(""); // Remove exit hint
         
-        // Set maximum window size
-        primaryStage.setMaxWidth(1920);
-        primaryStage.setMaxHeight(1080);
+        // Disable all exit combinations
+        primaryStage.setFullScreenExitKeyCombination(KeyCodeCombination.NO_MATCH);
         
-        // Configure full screen
-        primaryStage.setFullScreenExitHint("Press F11 or ESC to exit full screen mode");
-        primaryStage.setFullScreenExitKeyCombination(new KeyCodeCombination(KeyCode.F11));
-        
-        // Track maximized state before going fullscreen
-        primaryStage.maximizedProperty().addListener((obs, wasMaximized, isMaximized) -> {
-            if (!primaryStage.isFullScreen()) {
-                this.wasMaximized = isMaximized;
-            }
-        });
-        
-        // Handle fullscreen state changes
+        // Ensure it stays full screen
         primaryStage.fullScreenProperty().addListener((obs, wasFullScreen, isFullScreen) -> {
             if (!isFullScreen) {
-                // When exiting fullscreen, restore previous state
-                if (this.wasMaximized) {
-                    primaryStage.setMaximized(true);
-                } else {
-                    primaryStage.setMaximized(false);
-                    // Set a reasonable window size
-                    primaryStage.setWidth(1200);
-                    primaryStage.setHeight(800);
-                    primaryStage.centerOnScreen();
-                }
+                primaryStage.setFullScreen(true);
             }
         });
         
-        // Add keyboard shortcuts
+        // Only allow ESC to minimize (not exit full screen)
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.F11) {
-                toggleFullScreen(primaryStage);
-            }
-            // Alt + Enter also toggles full screen
-            else if (event.isAltDown() && event.getCode() == KeyCode.ENTER) {
-                toggleFullScreen(primaryStage);
-            }
-            // Escape exits full screen
-            else if (event.getCode() == KeyCode.ESCAPE && primaryStage.isFullScreen()) {
-                primaryStage.setFullScreen(false);
+            if (event.getCode() == KeyCode.ESCAPE) {
+                primaryStage.setIconified(true); // Minimize instead of exit full screen
             }
         });
         
         primaryStage.show();
         
-        // Start maximized (not full screen)
-        primaryStage.setMaximized(true);
-        this.wasMaximized = true;
+        // Force full screen after showing
+        primaryStage.setFullScreen(true);
     }
     
-    private void toggleFullScreen(Stage stage) {
-        if (!stage.isFullScreen()) {
-            // Remember current maximized state before going fullscreen
-            this.wasMaximized = stage.isMaximized();
-            stage.setFullScreen(true);
-        } else {
-            stage.setFullScreen(false);
+    // Utility method to switch scenes while maintaining full screen
+    public static void switchScene(Scene newScene, String title) {
+        if (primaryStage != null) {
+            primaryStage.setScene(newScene);
+            primaryStage.setTitle(title);
+            primaryStage.setFullScreen(true); // Ensure full screen is maintained
         }
     }
     
@@ -97,5 +68,3 @@ public class Main extends Application {
         launch(args);
     }
 }
-
-
