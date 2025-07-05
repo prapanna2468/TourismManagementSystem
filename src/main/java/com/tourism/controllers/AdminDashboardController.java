@@ -306,10 +306,27 @@ public class AdminDashboardController {
             return;
         }
         
+        // Remove from previous guide if assigned
+        if (!selectedBooking.getGuideUsername().isEmpty()) {
+            Guide previousGuide = guides.stream()
+                .filter(g -> g.getUsername().equals(selectedBooking.getGuideUsername()))
+                .findFirst()
+                .orElse(null);
+            if (previousGuide != null) {
+                previousGuide.removeBooking(selectedBooking);
+            }
+        }
+        
         selectedBooking.setGuideUsername(selectedGuide.getUsername());
         selectedGuide.assignBooking(selectedBooking);
+        
         bookingsTable.refresh();
-        showAlert("Success", "Guide assigned successfully!");
+        guidesTable.refresh();
+        updateAnalytics();
+        
+        showAlert("Success", "Guide assigned successfully! Guide will earn $" + 
+            String.format("%.2f", selectedGuide.calculateCommission(selectedBooking.getTotalPrice())) + 
+            " (30% commission)");
     }
     
     @FXML
@@ -340,6 +357,17 @@ public class AdminDashboardController {
         confirmAlert.setContentText("Are you sure you want to delete this booking?");
         
         if (confirmAlert.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            // Remove guide earnings if assigned
+            if (!selectedBooking.getGuideUsername().isEmpty()) {
+                Guide assignedGuide = guides.stream()
+                    .filter(g -> g.getUsername().equals(selectedBooking.getGuideUsername()))
+                    .findFirst()
+                    .orElse(null);
+                if (assignedGuide != null) {
+                    assignedGuide.removeBooking(selectedBooking);
+                }
+            }
+            
             bookings.remove(selectedBooking);
             updateAnalytics();
             showAlert("Success", "Booking deleted successfully!");
@@ -387,12 +415,25 @@ public class AdminDashboardController {
     }
     
     private void updateStatistics() {
-        double totalRevenue = bookings.stream()
-            .filter(booking -> "Confirmed".equals(booking.getStatus()) || "Completed".equals(booking.getStatus()))
-            .mapToDouble(Booking::getTotalPrice)
-            .sum();
+        double totalRevenue = 0.0;
+        double totalGuideCommissions = 0.0;
         
-        totalRevenueLabel.setText("Total Revenue: $" + String.format("%.2f", totalRevenue));
+        for (Booking booking : bookings) {
+            if ("Confirmed".equals(booking.getStatus()) || "Completed".equals(booking.getStatus())) {
+                totalRevenue += booking.getTotalPrice();
+                
+                // Subtract guide commission if assigned
+                if (!booking.getGuideUsername().isEmpty()) {
+                    totalGuideCommissions += booking.getTotalPrice() * 0.30;
+                }
+            }
+        }
+        
+        double netRevenue = totalRevenue - totalGuideCommissions;
+        
+        totalRevenueLabel.setText("Net Revenue: $" + String.format("%.2f", netRevenue) + 
+            " (Total: $" + String.format("%.2f", totalRevenue) + 
+            ", Guide Commissions: $" + String.format("%.2f", totalGuideCommissions) + ")");
         totalBookingsLabel.setText("Total Bookings: " + bookings.size());
         totalTouristsLabel.setText("Total Tourists: " + FileHandler.loadTourists().size());
         totalGuidesLabel.setText("Total Guides: " + guides.size());
