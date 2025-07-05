@@ -75,35 +75,50 @@ public class GuideDashboardController implements Initializable {
                 System.err.println("Current user is null!");
                 return;
             }
-            
+        
             System.out.println("Initializing guide dashboard for: " + currentUser.getFullName());
-            
+        
+            // First load the latest guide data from file
+            List<Guide> allGuides = FileHandler.loadGuides();
+            Guide latestGuideData = allGuides.stream()
+                .filter(g -> g.getUsername().equals(currentUser.getUsername()))
+                .findFirst()
+                .orElse(null);
+        
+            if (latestGuideData != null) {
+                currentUser.setTotalEarnings(latestGuideData.getTotalEarnings());
+                System.out.println("Loaded latest earnings: $" + currentUser.getTotalEarnings());
+            }
+        
             // Display user info using polymorphism
             if (welcomeLabel != null) {
                 welcomeLabel.setText(LanguageManager.getText("Welcome") + ", " + currentUser.getFullName() + "!");
             }
-            
+        
             if (dashboardInfoLabel != null) {
                 dashboardInfoLabel.setText(currentUser.getDashboardInfo());
             }
-            
+        
             // Display specific guide information
             if (earningsLabel != null) {
                 earningsLabel.setText("Total Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()));
             }
-            
+        
             if (languagesLabel != null) {
                 languagesLabel.setText("Languages: " + currentUser.getLanguagesString());
             }
-            
+        
             if (experienceLabel != null) {
                 experienceLabel.setText("Experience: " + currentUser.getExperienceYears() + " years");
             }
-            
+        
+            // Load assigned bookings
             loadAssignedBookings();
-            
+        
             System.out.println("Guide dashboard initialized successfully");
-            
+            System.out.println("Final earnings display: $" + currentUser.getTotalEarnings());
+            System.out.println("Assigned bookings count: " + assignedBookings.size());
+        
         } catch (Exception e) {
             System.err.println("Error initializing guide dashboard: " + e.getMessage());
             e.printStackTrace();
@@ -148,33 +163,57 @@ public class GuideDashboardController implements Initializable {
                 System.err.println("Cannot load bookings - current user is null");
                 return;
             }
-            
+        
+            // Reload guide data to get latest earnings
+            List<Guide> allGuides = FileHandler.loadGuides();
+            Guide updatedGuide = allGuides.stream()
+                .filter(g -> g.getUsername().equals(currentUser.getUsername()))
+                .findFirst()
+                .orElse(null);
+        
+            if (updatedGuide != null) {
+                currentUser.setTotalEarnings(updatedGuide.getTotalEarnings());
+                System.out.println("Updated guide earnings: $" + currentUser.getTotalEarnings());
+            }
+        
             List<Booking> allBookings = FileHandler.loadBookings();
             assignedBookings = FXCollections.observableArrayList();
-            
+        
             System.out.println("Loading bookings for guide: " + currentUser.getUsername());
             System.out.println("Total bookings in system: " + allBookings.size());
-            
+        
             for (Booking booking : allBookings) {
+                System.out.println("Checking booking " + booking.getBookingId() + 
+                    " - Guide: '" + booking.getGuideUsername() + "' - Status: " + booking.getStatus());
+            
                 if (booking.getGuideUsername() != null && 
-                    booking.getGuideUsername().equals(currentUser.getUsername()) && 
-                    booking.isUpcoming()) {
+                    booking.getGuideUsername().equals(currentUser.getUsername())) {
+                
                     assignedBookings.add(booking);
-                    System.out.println("Found assigned booking: " + booking.getBookingId());
+                    System.out.println("✓ Added assigned booking: " + booking.getBookingId() + 
+                        " for " + booking.getAttraction().getName());
+                
+                    // Add to current user's booking list if not already there
+                    currentUser.assignBooking(booking);
                 }
             }
-            
+        
             if (upcomingTreksTable != null) {
                 upcomingTreksTable.setItems(assignedBookings);
             }
-            
+        
             System.out.println("Loaded " + assignedBookings.size() + " assigned bookings");
-            
-            // Update earnings display
+        
+            // Update earnings display with latest data
             if (earningsLabel != null) {
                 earningsLabel.setText("Total Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()));
             }
-            
+        
+            // Update dashboard info
+            if (dashboardInfoLabel != null) {
+                dashboardInfoLabel.setText(currentUser.getDashboardInfo());
+            }
+        
         } catch (Exception e) {
             System.err.println("Error loading assigned bookings: " + e.getMessage());
             e.printStackTrace();
@@ -211,12 +250,16 @@ public class GuideDashboardController implements Initializable {
     @FXML
     private void handleRefresh() {
         try {
-            loadAssignedBookings();
+            System.out.println("Refreshing guide dashboard...");
+            
+            // Reload all data from files
+            initializeDashboard();
             loadImportantUpdates();
-            if (currentUser != null && dashboardInfoLabel != null) {
-                dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-            }
-            showAlert("Success", "Dashboard refreshed successfully!");
+            
+            showAlert("Success", "Dashboard refreshed successfully!\n" +
+                "Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()) + "\n" +
+                "Assigned Bookings: " + assignedBookings.size());
+            
         } catch (Exception e) {
             System.err.println("Error refreshing dashboard: " + e.getMessage());
             showAlert("Error", "Failed to refresh dashboard");
