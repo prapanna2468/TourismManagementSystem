@@ -2,46 +2,94 @@ package com.tourism.controllers;
 
 import com.tourism.Main;
 import com.tourism.models.*;
-import com.tourism.utils.DialogUtils;
 import com.tourism.utils.FileHandler;
 import com.tourism.utils.LanguageManager;
+import com.tourism.utils.DialogUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.chart.*;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import java.time.LocalDate;
-import java.time.Month;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public class TouristDashboardController {
+public class AdminDashboardController {
     @FXML private Label welcomeLabel;
     @FXML private Label dashboardInfoLabel;
-    @FXML private ComboBox<Attraction> attractionComboBox;
-    @FXML private DatePicker trekDatePicker;
-    @FXML private Label priceLabel;
-    @FXML private Button bookButton;
-    @FXML private Button languageToggleButton;
-    @FXML private Button logoutButton;
+    @FXML private TabPane mainTabPane;
+    
+    // Guide Management Tab
+    @FXML private TableView<Guide> guidesTable;
+    @FXML private TableColumn<Guide, String> guideUsernameColumn;
+    @FXML private TableColumn<Guide, String> guideNameColumn;
+    @FXML private TableColumn<Guide, String> guideLanguagesColumn;
+    @FXML private TableColumn<Guide, Integer> guideExperienceColumn;
+    @FXML private TextField guideUsernameField;
+    @FXML private TextField guidePasswordField;
+    @FXML private TextField guideNameField;
+    @FXML private TextField guideEmailField;
+    @FXML private TextField guidePhoneField;
+    @FXML private TextField guideLanguagesField;
+    @FXML private TextField guideExperienceField;
+    @FXML private Button addGuideButton;
+    @FXML private Button updateGuideButton;
+    @FXML private Button deleteGuideButton;
+    
+    // Attraction Management Tab
+    @FXML private TableView<Attraction> attractionsTable;
+    @FXML private TableColumn<Attraction, String> attractionNameColumn;
+    @FXML private TableColumn<Attraction, String> attractionLocationColumn;
+    @FXML private TableColumn<Attraction, String> attractionAltitudeColumn;
+    @FXML private TableColumn<Attraction, String> attractionDifficultyColumn;
+    @FXML private TableColumn<Attraction, Double> attractionPriceColumn;
+    @FXML private TextField attractionNameField;
+    @FXML private TextField attractionLocationField;
+    @FXML private ComboBox<String> attractionAltitudeCombo;
+    @FXML private ComboBox<String> attractionDifficultyCombo;
+    @FXML private TextField attractionPriceField;
+    @FXML private Button addAttractionButton;
+    @FXML private Button updateAttractionButton;
+    @FXML private Button deleteAttractionButton;
+    
+    // Booking Management Tab
     @FXML private TableView<Booking> bookingsTable;
     @FXML private TableColumn<Booking, Integer> bookingIdColumn;
-    @FXML private TableColumn<Booking, String> attractionColumn;
-    @FXML private TableColumn<Booking, LocalDate> dateColumn;
-    @FXML private TableColumn<Booking, String> statusColumn;
-    @FXML private TableColumn<Booking, Double> priceColumn;
-    @FXML private Button updateBookingButton;
-    @FXML private Button cancelBookingButton;
+    @FXML private TableColumn<Booking, String> bookingTouristColumn;
+    @FXML private TableColumn<Booking, String> bookingGuideColumn;
+    @FXML private TableColumn<Booking, String> bookingAttractionColumn;
+    @FXML private TableColumn<Booking, LocalDate> bookingDateColumn;
+    @FXML private TableColumn<Booking, String> bookingStatusColumn;
+    @FXML private TableColumn<Booking, Double> bookingPriceColumn;
+    @FXML private ComboBox<Guide> assignGuideCombo;
+    @FXML private ComboBox<String> bookingStatusCombo;
+    @FXML private Button assignGuideButton;
+    @FXML private Button updateBookingStatusButton;
+    @FXML private Button deleteBookingButton;
     
-    private Tourist currentUser;
+    // Analytics Tab
+    @FXML private PieChart nationalityChart;
+    @FXML private BarChart<String, Number> popularAttractionsChart;
+    @FXML private Label totalRevenueLabel;
+    @FXML private Label totalBookingsLabel;
+    @FXML private Label totalTouristsLabel;
+    @FXML private Label totalGuidesLabel;
+    
+    // Common
+    @FXML private Button languageToggleButton;
+    @FXML private Button logoutButton;
+    @FXML private Button refreshDataButton;
+    
+    private Admin currentUser;
+    private ObservableList<Guide> guides;
     private ObservableList<Attraction> attractions;
-    private ObservableList<Booking> userBookings;
+    private ObservableList<Booking> bookings;
     
-    public void setCurrentUser(Tourist user) {
+    public void setCurrentUser(Admin user) {
         this.currentUser = user;
         initializeDashboard();
     }
@@ -49,7 +97,7 @@ public class TouristDashboardController {
     @FXML
     private void initialize() {
         setupTableColumns();
-        setupEventHandlers();
+        setupComboBoxes();
         updateLanguage();
     }
     
@@ -58,517 +106,477 @@ public class TouristDashboardController {
         welcomeLabel.setText(LanguageManager.getText("Welcome") + ", " + currentUser.getFullName() + "!");
         dashboardInfoLabel.setText(currentUser.getDashboardInfo());
         
-        loadAttractions();
-        loadUserBookings();
-        updatePriceCalculation();
+        loadAllData();
+        updateAnalytics();
     }
     
     private void setupTableColumns() {
+        // Guide table columns
+        guideUsernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
+        guideNameColumn.setCellValueFactory(new PropertyValueFactory<>("fullName"));
+        guideLanguagesColumn.setCellValueFactory(cellData -> 
+            new javafx.beans.property.SimpleStringProperty(cellData.getValue().getLanguagesString()));
+        guideExperienceColumn.setCellValueFactory(new PropertyValueFactory<>("experienceYears"));
+        
+        // Attraction table columns
+        attractionNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        attractionLocationColumn.setCellValueFactory(new PropertyValueFactory<>("location"));
+        attractionAltitudeColumn.setCellValueFactory(new PropertyValueFactory<>("altitudeLevel"));
+        attractionDifficultyColumn.setCellValueFactory(new PropertyValueFactory<>("difficulty"));
+        attractionPriceColumn.setCellValueFactory(new PropertyValueFactory<>("basePrice"));
+        
+        // Booking table columns
         bookingIdColumn.setCellValueFactory(new PropertyValueFactory<>("bookingId"));
-        attractionColumn.setCellValueFactory(cellData -> 
+        bookingTouristColumn.setCellValueFactory(new PropertyValueFactory<>("touristUsername"));
+        bookingGuideColumn.setCellValueFactory(new PropertyValueFactory<>("guideUsername"));
+        bookingAttractionColumn.setCellValueFactory(cellData -> 
             new javafx.beans.property.SimpleStringProperty(cellData.getValue().getAttraction().getName()));
-        dateColumn.setCellValueFactory(new PropertyValueFactory<>("trekDate"));
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        priceColumn.setCellValueFactory(new PropertyValueFactory<>("totalPrice"));
+        bookingDateColumn.setCellValueFactory(new PropertyValueFactory<>("trekDate"));
+        bookingStatusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        bookingPriceColumn.setCellValueFactory(new PropertyValueFactory<>("totalPrice"));
     }
     
-    private void setupEventHandlers() {
-        attractionComboBox.setOnAction(e -> updatePriceCalculation());
-        trekDatePicker.setOnAction(e -> updatePriceCalculation());
-        
-        // Custom cell factory for attraction ComboBox
-        attractionComboBox.setCellFactory(listView -> new ListCell<Attraction>() {
-            @Override
-            protected void updateItem(Attraction attraction, boolean empty) {
-                super.updateItem(attraction, empty);
-                if (empty || attraction == null) {
-                    setText(null);
-                } else {
-                    setText(attraction.getName() + " - " + attraction.getAltitudeLevel() + " Altitude");
-                }
-            }
-        });
-        
-        attractionComboBox.setButtonCell(new ListCell<Attraction>() {
-            @Override
-            protected void updateItem(Attraction attraction, boolean empty) {
-                super.updateItem(attraction, empty);
-                if (empty || attraction == null) {
-                    setText(null);
-                } else {
-                    setText(attraction.getName());
-                }
-            }
-        });
+    private void setupComboBoxes() {
+        attractionAltitudeCombo.setItems(FXCollections.observableArrayList("High", "Low"));
+        attractionDifficultyCombo.setItems(FXCollections.observableArrayList("Easy", "Medium", "Hard"));
+        bookingStatusCombo.setItems(FXCollections.observableArrayList("Pending", "Confirmed", "Cancelled", "Completed"));
     }
     
-    private void loadAttractions() {
+    private void loadAllData() {
+        // Load guides
+        List<Guide> guideList = FileHandler.loadGuides();
+        guides = FXCollections.observableArrayList(guideList);
+        guidesTable.setItems(guides);
+        assignGuideCombo.setItems(guides);
+        
+        // Load attractions
         List<Attraction> attractionList = FileHandler.loadAttractions();
         attractions = FXCollections.observableArrayList(attractionList);
-        attractionComboBox.setItems(attractions);
-    }
-    
-    private void loadUserBookings() {
-        List<Booking> allBookings = FileHandler.loadBookings();
-        userBookings = FXCollections.observableArrayList();
+        attractionsTable.setItems(attractions);
         
-        for (Booking booking : allBookings) {
-            if (booking.getTouristUsername().equals(currentUser.getUsername())) {
-                userBookings.add(booking);
-                currentUser.addBooking(booking); // Update user's booking list
-            }
-        }
-        
-        bookingsTable.setItems(userBookings);
+        // Load bookings
+        List<Booking> bookingList = FileHandler.loadBookings();
+        bookings = FXCollections.observableArrayList(bookingList);
+        bookingsTable.setItems(bookings);
     }
     
-    private void updatePriceCalculation() {
-        Attraction selectedAttraction = attractionComboBox.getValue();
-        LocalDate selectedDate = trekDatePicker.getValue();
-        
-        if (selectedAttraction != null && selectedDate != null) {
-            boolean isFestivalSeason = isFestivalSeason(selectedDate);
-            double price = selectedAttraction.calculatePrice(isFestivalSeason);
-            
-            String priceText = "$" + String.format("%.2f", price);
-            if (isFestivalSeason) {
-                priceText += " (20% Festival Discount Applied!)";
-            }
-            priceLabel.setText(priceText);
-        } else {
-            priceLabel.setText("Select attraction and date");
-        }
-    }
-    
-    private boolean isFestivalSeason(LocalDate date) {
-        Month month = date.getMonth();
-        return month == Month.AUGUST || month == Month.SEPTEMBER || month == Month.OCTOBER;
-    }
-    
+    // Guide Management Methods
     @FXML
-    private void handleBooking() {
-        Attraction selectedAttraction = attractionComboBox.getValue();
-        LocalDate selectedDate = trekDatePicker.getValue();
+    private void handleAddGuide() {
+        if (!validateGuideFields()) return;
         
-        if (selectedAttraction == null || selectedDate == null) {
-            DialogUtils.showError("Error", "Please select attraction and date!");
-            return;
-        }
-        
-        if (selectedDate.isBefore(LocalDate.now())) {
-            DialogUtils.showError("Error", "Cannot book for past dates!");
-            return;
-        }
-        
-        // Check if attraction is available
-        if (!selectedAttraction.isAvailable()) {
-            DialogUtils.showError("Error", "This attraction is fully booked!");
-            return;
-        }
-        
-        // Show high altitude warning
-        if (selectedAttraction.isHighAltitude()) {
-            Alert alert = DialogUtils.createAlert(Alert.AlertType.WARNING, 
-                LanguageManager.getText("High Altitude Warning"), 
-                "This trek involves high altitude. Please ensure you are physically fit and consult a doctor if you have any health concerns. Proper acclimatization is essential.");
-            
-            alert.setHeaderText("High Altitude Trek Selected!");
-            
-            ButtonType continueButton = new ButtonType("Continue Booking");
-            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-            alert.getButtonTypes().setAll(continueButton, cancelButton);
-            
-            if (alert.showAndWait().orElse(cancelButton) == cancelButton) {
-                return;
-            }
-        }
-        
-        // Create booking
-        Booking newBooking = new Booking(currentUser.getUsername(), selectedAttraction, selectedDate);
-        newBooking.confirmBooking();
-        
-        // Show festival discount popup if applicable
-        if (newBooking.isFestivalDiscountApplied()) {
-            Alert festivalAlert = DialogUtils.createAlert(Alert.AlertType.INFORMATION,
-                LanguageManager.getText("Festival Discount Applied"),
-                "Congratulations! You've received a 20% discount for booking during the festival season (August-October). Enjoy your trek!");
-            
-            festivalAlert.setHeaderText("🎉 Dashain & Tihar Festival Discount!");
-            festivalAlert.showAndWait();
-        }
-        
-        // Save booking
-        FileHandler.saveBooking(newBooking);
-        currentUser.addBooking(newBooking);
-        userBookings.add(newBooking);
-        
-        // Update dashboard info
-        dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-        
-        DialogUtils.showInfo("Success", "Booking confirmed successfully!\nBooking ID: " + newBooking.getBookingId());
-        
-        // Clear selection
-        attractionComboBox.setValue(null);
-        trekDatePicker.setValue(null);
-        priceLabel.setText("Select attraction and date");
-    }
-    
-    @FXML
-    private void handleUpdateBooking() {
-        Booking selectedBooking = bookingsTable.getSelectionModel().getSelectedItem();
-        if (selectedBooking == null) {
-            DialogUtils.showError("Error", "Please select a booking to update!");
-            return;
-        }
-        
-        if (!selectedBooking.canBeModified()) {
-            DialogUtils.showError("Error", "This booking cannot be modified! Bookings can only be modified at least 3 days before the trek date.");
-            return;
-        }
-        
-        // Show booking update dialog
-        showBookingUpdateDialog(selectedBooking);
-    }
-
-    private void showBookingUpdateDialog(Booking booking) {
-        Dialog<ButtonType> dialog = DialogUtils.createDialog("Update Booking - ID: " + booking.getBookingId());
-        dialog.setHeaderText("Modify your booking details");
-
-        // Create the dialog content
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-
-        // Current booking info
-        Label currentInfoLabel = new Label("Current Booking Information:");
-        currentInfoLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-
-        Label currentAttractionLabel = new Label("Current Attraction: " + booking.getAttraction().getName());
-        Label currentDateLabel = new Label("Current Date: " + booking.getTrekDate());
-        Label currentPriceLabel = new Label("Current Price: $" + String.format("%.2f", booking.getTotalPrice()));
-
-        // Update fields
-        Label updateLabel = new Label("Update Options:");
-        updateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2E8B57;");
-
-        Label attractionLabel = new Label("New Attraction:");
-        ComboBox<Attraction> newAttractionCombo = new ComboBox<>();
-        newAttractionCombo.setItems(attractions);
-        newAttractionCombo.setValue(booking.getAttraction());
-
-        // Custom cell factory for attraction display
-        newAttractionCombo.setCellFactory(listView -> new ListCell<Attraction>() {
-            @Override
-            protected void updateItem(Attraction attraction, boolean empty) {
-                super.updateItem(attraction, empty);
-                if (empty || attraction == null) {
-                    setText(null);
-                } else {
-                    setText(attraction.getName() + " - " + attraction.getAltitudeLevel() + " Altitude ($" +
-                            String.format("%.2f", attraction.getBasePrice()) + ")");
-                }
-            }
-        });
-
-        newAttractionCombo.setButtonCell(new ListCell<Attraction>() {
-            @Override
-            protected void updateItem(Attraction attraction, boolean empty) {
-                super.updateItem(attraction, empty);
-                if (empty || attraction == null) {
-                    setText(null);
-                } else {
-                    setText(attraction.getName());
-                }
-            }
-        });
-
-        Label dateLabel = new Label("New Trek Date:");
-        DatePicker newDatePicker = new DatePicker();
-        newDatePicker.setValue(booking.getTrekDate());
-
-        // Price preview
-        Label newPriceLabel = new Label("New Price: Calculating...");
-        newPriceLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #2E8B57;");
-
-        // Notes field
-        Label notesLabel = new Label("Special Requests/Notes:");
-        TextArea notesArea = new TextArea();
-        notesArea.setText(booking.getNotes());
-        notesArea.setPrefRowCount(3);
-        notesArea.setWrapText(true);
-
-        // Update price calculation when attraction or date changes
-        Runnable updatePrice = () -> {
-            Attraction selectedAttraction = newAttractionCombo.getValue();
-            LocalDate selectedDate = newDatePicker.getValue();
-
-            if (selectedAttraction != null && selectedDate != null) {
-                boolean isFestivalSeason = isFestivalSeason(selectedDate);
-                double price = selectedAttraction.calculatePrice(isFestivalSeason);
-
-                String priceText = "New Price: $" + String.format("%.2f", price);
-                if (isFestivalSeason) {
-                    priceText += " (20% Festival Discount!)";
-                }
-                newPriceLabel.setText(priceText);
-            } else {
-                newPriceLabel.setText("New Price: Select attraction and date");
-            }
-        };
-
-        newAttractionCombo.setOnAction(e -> updatePrice.run());
-        newDatePicker.setOnAction(e -> updatePrice.run());
-
-        // Initial price calculation
-        updatePrice.run();
-
-        // Add components to grid
-        int row = 0;
-        grid.add(currentInfoLabel, 0, row++, 2, 1);
-        grid.add(currentAttractionLabel, 0, row++, 2, 1);
-        grid.add(currentDateLabel, 0, row++, 2, 1);
-        grid.add(currentPriceLabel, 0, row++, 2, 1);
-
-        // Add separator
-        Separator separator = new Separator();
-        grid.add(separator, 0, row++, 2, 1);
-
-        grid.add(updateLabel, 0, row++, 2, 1);
-        grid.add(attractionLabel, 0, row);
-        grid.add(newAttractionCombo, 1, row++);
-        grid.add(dateLabel, 0, row);
-        grid.add(newDatePicker, 1, row++);
-        grid.add(newPriceLabel, 0, row++, 2, 1);
-        grid.add(notesLabel, 0, row++, 2, 1);
-        grid.add(notesArea, 0, row++, 2, 1);
-
-        dialog.getDialogPane().setContent(grid);
-
-        // Add buttons
-        ButtonType updateButtonType = new ButtonType("Update Booking", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        dialog.getDialogPane().getButtonTypes().addAll(updateButtonType, cancelButtonType);
-
-        // Handle the result
-        dialog.showAndWait().ifPresent(result -> {
-            if (result == updateButtonType) {
-                processBookingUpdate(booking, newAttractionCombo.getValue(),
-                        newDatePicker.getValue(), notesArea.getText());
-            }
-        });
-    }
-
-    private void processBookingUpdate(Booking originalBooking, Attraction newAttraction,
-                                     LocalDate newDate, String newNotes) {
         try {
-            // Validation
-            if (newAttraction == null || newDate == null) {
-                DialogUtils.showError("Error", "Please select both attraction and date!");
-                return;
+            List<String> languages = Arrays.asList(guideLanguagesField.getText().trim().split(",\\s*"));
+            Guide newGuide = new Guide(
+                guideUsernameField.getText().trim(),
+                guidePasswordField.getText().trim(),
+                guideNameField.getText().trim(),
+                guideEmailField.getText().trim(),
+                guidePhoneField.getText().trim(),
+                languages,
+                Integer.parseInt(guideExperienceField.getText().trim())
+            );
+            
+            FileHandler.saveGuide(newGuide);
+            guides.add(newGuide);
+            clearGuideFields();
+            DialogUtils.showInfo("Success", "Guide added successfully!");
+            
+        } catch (Exception e) {
+            DialogUtils.showError("Error", "Failed to add guide!");
+        }
+    }
+    
+    @FXML
+    private void handleUpdateGuide() {
+        Guide selectedGuide = guidesTable.getSelectionModel().getSelectedItem();
+        if (selectedGuide == null) {
+            DialogUtils.showError("Error", "Please select a guide to update!");
+            return;
+        }
+        
+        if (!validateGuideFields()) return;
+        
+        try {
+            selectedGuide.setFullName(guideNameField.getText().trim());
+            selectedGuide.setEmail(guideEmailField.getText().trim());
+            selectedGuide.setPhone(guidePhoneField.getText().trim());
+            selectedGuide.setExperienceYears(Integer.parseInt(guideExperienceField.getText().trim()));
+            
+            // Save all guides to file
+            List<Guide> allGuides = new ArrayList<>(guides);
+            FileHandler.saveAllGuides(allGuides);
+            
+            guidesTable.refresh();
+            DialogUtils.showInfo("Success", "Guide updated successfully!");
+            
+        } catch (Exception e) {
+            DialogUtils.showError("Error", "Failed to update guide!");
+        }
+    }
+    
+    @FXML
+    private void handleDeleteGuide() {
+        Guide selectedGuide = guidesTable.getSelectionModel().getSelectedItem();
+        if (selectedGuide == null) {
+            DialogUtils.showError("Error", "Please select a guide to delete!");
+            return;
+        }
+        
+        if (DialogUtils.showConfirmation("Confirm Deletion", "Are you sure you want to delete this guide?")) {
+            guides.remove(selectedGuide);
+            
+            // Save updated guides list to file
+            List<Guide> allGuides = new ArrayList<>(guides);
+            FileHandler.saveAllGuides(allGuides);
+            
+            DialogUtils.showInfo("Success", "Guide deleted successfully!");
+        }
+    }
+    
+    // Attraction Management Methods
+    @FXML
+    private void handleAddAttraction() {
+        if (!validateAttractionFields()) return;
+        
+        try {
+            Attraction newAttraction = new Attraction(
+                attractionNameField.getText().trim(),
+                attractionLocationField.getText().trim(),
+                attractionAltitudeCombo.getValue(),
+                attractionDifficultyCombo.getValue(),
+                Double.parseDouble(attractionPriceField.getText().trim())
+            );
+            
+            FileHandler.saveAttraction(newAttraction);
+            attractions.add(newAttraction);
+            clearAttractionFields();
+            DialogUtils.showInfo("Success", "Attraction added successfully!");
+            
+        } catch (Exception e) {
+            DialogUtils.showError("Error", "Failed to add attraction!");
+        }
+    }
+    
+    @FXML
+    private void handleUpdateAttraction() {
+        Attraction selectedAttraction = attractionsTable.getSelectionModel().getSelectedItem();
+        if (selectedAttraction == null) {
+            DialogUtils.showError("Error", "Please select an attraction to update!");
+            return;
+        }
+        
+        if (!validateAttractionFields()) return;
+        
+        try {
+            selectedAttraction.setName(attractionNameField.getText().trim());
+            selectedAttraction.setLocation(attractionLocationField.getText().trim());
+            selectedAttraction.setAltitudeLevel(attractionAltitudeCombo.getValue());
+            selectedAttraction.setDifficulty(attractionDifficultyCombo.getValue());
+            selectedAttraction.setBasePrice(Double.parseDouble(attractionPriceField.getText().trim()));
+            
+            attractionsTable.refresh();
+            DialogUtils.showInfo("Success", "Attraction updated successfully!");
+            
+        } catch (Exception e) {
+            DialogUtils.showError("Error", "Failed to update attraction!");
+        }
+    }
+    
+    @FXML
+    private void handleDeleteAttraction() {
+        Attraction selectedAttraction = attractionsTable.getSelectionModel().getSelectedItem();
+        if (selectedAttraction == null) {
+            DialogUtils.showError("Error", "Please select an attraction to delete!");
+            return;
+        }
+        
+        if (DialogUtils.showConfirmation("Confirm Deletion", "Are you sure you want to delete this attraction?")) {
+            attractions.remove(selectedAttraction);
+            DialogUtils.showInfo("Success", "Attraction deleted successfully!");
+        }
+    }
+    
+    // Booking Management Methods
+    @FXML
+    private void handleAssignGuide() {
+        Booking selectedBooking = bookingsTable.getSelectionModel().getSelectedItem();
+        Guide selectedGuide = assignGuideCombo.getValue();
+        
+        if (selectedBooking == null || selectedGuide == null) {
+            DialogUtils.showError("Error", "Please select both booking and guide!");
+            return;
+        }
+        
+        // Remove from previous guide if assigned
+        if (!selectedBooking.getGuideUsername().isEmpty()) {
+            Guide previousGuide = guides.stream()
+                .filter(g -> g.getUsername().equals(selectedBooking.getGuideUsername()))
+                .findFirst()
+                .orElse(null);
+            if (previousGuide != null) {
+                previousGuide.removeBooking(selectedBooking);
             }
-
-            if (newDate.isBefore(LocalDate.now())) {
-                DialogUtils.showError("Error", "Cannot set trek date in the past!");
-                return;
-            }
-
-            if (newDate.isBefore(LocalDate.now().plusDays(3))) {
-                DialogUtils.showError("Error", "Trek date must be at least 3 days from today!");
-                return;
-            }
-
-            // Check if anything actually changed
-            boolean attractionChanged = !newAttraction.getName().equals(originalBooking.getAttraction().getName());
-            boolean dateChanged = !newDate.equals(originalBooking.getTrekDate());
-            boolean notesChanged = !newNotes.trim().equals(originalBooking.getNotes().trim());
-
-            if (!attractionChanged && !dateChanged && !notesChanged) {
-                DialogUtils.showInfo("Info", "No changes were made to the booking.");
-                return;
-            }
-
-            // Show high altitude warning if new attraction is high altitude
-            if (attractionChanged && newAttraction.isHighAltitude() &&
-                    !originalBooking.getAttraction().isHighAltitude()) {
-
-                Alert alert = DialogUtils.createAlert(Alert.AlertType.WARNING, "High Altitude Warning",
-                    "Your new selection involves high altitude. Please ensure you are physically fit and consult a doctor if you have any health concerns.");
+        }
+        
+        // Assign new guide
+        selectedBooking.setGuideUsername(selectedGuide.getUsername());
+        selectedGuide.assignBooking(selectedBooking);
+        
+        // Save all changes to files
+        try {
+            // Convert ObservableList to regular List for saving
+            List<Booking> bookingList = new ArrayList<>(bookings);
+            List<Guide> guideList = new ArrayList<>(guides);
+            
+            FileHandler.saveAllBookings(bookingList);
+            FileHandler.saveAllGuides(guideList);
+            
+            System.out.println("Guide " + selectedGuide.getUsername() + " assigned to booking " + selectedBooking.getBookingId());
+            System.out.println("Guide earnings updated: $" + selectedGuide.getTotalEarnings());
+        } catch (Exception e) {
+            System.err.println("Error saving guide assignment: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        // Refresh UI
+        bookingsTable.refresh();
+        guidesTable.refresh();
+        updateAnalytics();
+        
+        double commission = selectedGuide.calculateCommission(selectedBooking.getTotalPrice());
+        DialogUtils.showInfo("Success", "Guide assigned successfully!\n" +
+            "Guide: " + selectedGuide.getFullName() + "\n" +
+            "Commission: $" + String.format("%.2f", commission) + " (30%)\n" +
+            "Total Earnings: $" + String.format("%.2f", selectedGuide.getTotalEarnings()));
+    }
+    
+    @FXML
+    private void handleUpdateBookingStatus() {
+        Booking selectedBooking = bookingsTable.getSelectionModel().getSelectedItem();
+        String newStatus = bookingStatusCombo.getValue();
+        
+        if (selectedBooking == null || newStatus == null) {
+            DialogUtils.showError("Error", "Please select booking and status!");
+            return;
+        }
+        
+        String oldStatus = selectedBooking.getStatus();
+        selectedBooking.setStatus(newStatus);
+        
+        // Update guide earnings if status changed to/from confirmed/completed
+        if (!selectedBooking.getGuideUsername().isEmpty()) {
+            Guide assignedGuide = guides.stream()
+                .filter(g -> g.getUsername().equals(selectedBooking.getGuideUsername()))
+                .findFirst()
+                .orElse(null);
                 
-                alert.setHeaderText("High Altitude Trek Selected!");
-
-                ButtonType continueButton = new ButtonType("Continue Update");
-                ButtonType cancelButton = new ButtonType("Cancel Update", ButtonBar.ButtonData.CANCEL_CLOSE);
-                alert.getButtonTypes().setAll(continueButton, cancelButton);
-
-                if (alert.showAndWait().orElse(cancelButton) == cancelButton) {
-                    return;
+            if (assignedGuide != null) {
+                double commission = selectedBooking.getTotalPrice() * 0.30;
+                
+                // If changing from confirmed/completed to cancelled, remove earnings
+                if (("Confirmed".equals(oldStatus) || "Completed".equals(oldStatus)) && 
+                    "Cancelled".equals(newStatus)) {
+                    assignedGuide.setTotalEarnings(assignedGuide.getTotalEarnings() - commission);
+                }
+                // If changing from cancelled to confirmed/completed, add earnings
+                else if ("Cancelled".equals(oldStatus) && 
+                         ("Confirmed".equals(newStatus) || "Completed".equals(newStatus))) {
+                    assignedGuide.setTotalEarnings(assignedGuide.getTotalEarnings() + commission);
                 }
             }
-
-            // Calculate old and new prices for comparison
-            double oldPrice = originalBooking.getTotalPrice();
-            boolean newFestivalSeason = isFestivalSeason(newDate);
-            double newPrice = newAttraction.calculatePrice(newFestivalSeason);
-            double priceDifference = newPrice - oldPrice;
-
-            // Update the booking
-            originalBooking.setAttraction(newAttraction);
-            originalBooking.setTrekDate(newDate);
-            originalBooking.setNotes(newNotes.trim());
-
-            // Update tourist's spending
-            currentUser.updateBookingInList(originalBooking);
-
-            // Save changes to file
-            List<Booking> allBookings = FileHandler.loadBookings();
-            for (int i = 0; i < allBookings.size(); i++) {
-                if (allBookings.get(i).getBookingId() == originalBooking.getBookingId()) {
-                    allBookings.set(i, originalBooking);
-                    break;
-                }
-            }
-            FileHandler.saveAllBookings(allBookings);
-
-            // Update tourist data
-            List<Tourist> allTourists = FileHandler.loadTourists();
-            for (int i = 0; i < allTourists.size(); i++) {
-                if (allTourists.get(i).getUsername().equals(currentUser.getUsername())) {
-                    allTourists.set(i, currentUser);
-                    break;
-                }
-            }
-            FileHandler.saveAllTourists(allTourists);
-
-            // Refresh UI
-            bookingsTable.refresh();
-            dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-
-            // Show success message with details
-            StringBuilder message = new StringBuilder("Booking updated successfully!\n\n");
-            message.append("Booking ID: ").append(originalBooking.getBookingId()).append("\n");
-
-            if (attractionChanged) {
-                message.append("✓ Attraction changed\n");
-            }
-            if (dateChanged) {
-                message.append("✓ Date changed\n");
-            }
-            if (notesChanged) {
-                message.append("✓ Notes updated\n");
-            }
-
-            message.append("\nPrice Change: ");
-            if (priceDifference > 0) {
-                message.append("+$").append(String.format("%.2f", priceDifference));
-            } else if (priceDifference < 0) {
-                message.append("-$").append(String.format("%.2f", Math.abs(priceDifference)));
-            } else {
-                message.append("No change");
-            }
-
-            message.append("\nNew Total: $").append(String.format("%.2f", newPrice));
-
-            if (newFestivalSeason && !originalBooking.isFestivalDiscountApplied()) {
-                message.append("\n🎉 Festival discount now applied!");
-            }
-
-            DialogUtils.showInfo("Success", message.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            DialogUtils.showError("Error", "Failed to update booking: " + e.getMessage());
         }
+        
+        // Save changes to files
+        try {
+            List<Booking> bookingList = new ArrayList<>(bookings);
+            List<Guide> guideList = new ArrayList<>(guides);
+            
+            FileHandler.saveAllBookings(bookingList);
+            FileHandler.saveAllGuides(guideList);
+        } catch (Exception e) {
+            System.err.println("Error saving booking status update: " + e.getMessage());
+        }
+        
+        bookingsTable.refresh();
+        guidesTable.refresh();
+        updateAnalytics();
+        
+        DialogUtils.showInfo("Success", "Booking status updated successfully!");
     }
     
     @FXML
-    private void handleCancelBooking() {
+    private void handleDeleteBooking() {
         Booking selectedBooking = bookingsTable.getSelectionModel().getSelectedItem();
         if (selectedBooking == null) {
-            DialogUtils.showError("Error", "Please select a booking to cancel!");
+            DialogUtils.showError("Error", "Please select a booking to delete!");
             return;
         }
         
-        if (!selectedBooking.canBeCancelled()) {
-            // Check if it's already cancelled and can be deleted
-            if (selectedBooking.canBeDeleted()) {
-                if (DialogUtils.showConfirmation("Delete Cancelled Booking", 
-                    "This booking is already cancelled. Do you want to delete it permanently?")) {
-                    deleteBooking(selectedBooking);
-                }
-                return;
-            }
-            
-            DialogUtils.showError("Error", "This booking cannot be cancelled! Bookings can only be cancelled at least 7 days before the trek date.");
-            return;
-        }
-        
-        if (DialogUtils.showConfirmation("Confirm Cancellation", 
-            "Are you sure you want to cancel this booking?\n\nAfter cancellation, you can delete it permanently if needed.")) {
-            
-            // Update tourist's spending before cancelling
-            currentUser.removeBooking(selectedBooking);
-            
-            selectedBooking.cancelBooking();
-            
-            // Save changes to file
-            List<Booking> allBookings = FileHandler.loadBookings();
-            for (int i = 0; i < allBookings.size(); i++) {
-                if (allBookings.get(i).getBookingId() == selectedBooking.getBookingId()) {
-                    allBookings.set(i, selectedBooking);
-                    break;
+        if (DialogUtils.showConfirmation("Confirm Deletion", "Are you sure you want to delete this booking?")) {
+            // Remove guide earnings if assigned
+            if (!selectedBooking.getGuideUsername().isEmpty()) {
+                Guide assignedGuide = guides.stream()
+                    .filter(g -> g.getUsername().equals(selectedBooking.getGuideUsername()))
+                    .findFirst()
+                    .orElse(null);
+                if (assignedGuide != null) {
+                    assignedGuide.removeBooking(selectedBooking);
                 }
             }
-            FileHandler.saveAllBookings(allBookings);
             
-            // Update tourist data
-            List<Tourist> allTourists = FileHandler.loadTourists();
-            for (int i = 0; i < allTourists.size(); i++) {
-                if (allTourists.get(i).getUsername().equals(currentUser.getUsername())) {
-                    allTourists.set(i, currentUser);
-                    break;
-                }
+            bookings.remove(selectedBooking);
+            
+            // Save changes to files
+            try {
+                List<Booking> bookingList = new ArrayList<>(bookings);
+                List<Guide> guideList = new ArrayList<>(guides);
+                
+                FileHandler.saveAllBookings(bookingList);
+                FileHandler.saveAllGuides(guideList);
+            } catch (Exception e) {
+                System.err.println("Error saving booking deletion: " + e.getMessage());
             }
-            FileHandler.saveAllTourists(allTourists);
             
-            // Refresh UI
-            bookingsTable.refresh();
-            dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-            
-            DialogUtils.showInfo("Success", "Booking cancelled successfully!\n\nYour total spending has been updated.\nYou can now delete this cancelled booking if you wish.");
+            updateAnalytics();
+            DialogUtils.showInfo("Success", "Booking deleted successfully!");
         }
     }
     
-    private void deleteBooking(Booking booking) {
-        try {
-            // Remove from user's booking list
-            userBookings.remove(booking);
-            currentUser.removeBooking(booking);
-            
-            // Remove from all bookings file
-            List<Booking> allBookings = FileHandler.loadBookings();
-            allBookings.removeIf(b -> b.getBookingId() == booking.getBookingId());
-            FileHandler.saveAllBookings(allBookings);
-            
-            // Update tourist data
-            List<Tourist> allTourists = FileHandler.loadTourists();
-            for (int i = 0; i < allTourists.size(); i++) {
-                if (allTourists.get(i).getUsername().equals(currentUser.getUsername())) {
-                    allTourists.set(i, currentUser);
-                    break;
+    // Analytics Methods
+    private void updateAnalytics() {
+        updateNationalityChart();
+        updatePopularAttractionsChart();
+        updateStatistics();
+    }
+    
+    private void updateNationalityChart() {
+        List<Tourist> tourists = FileHandler.loadTourists();
+        Map<String, Long> nationalityCount = tourists.stream()
+            .collect(Collectors.groupingBy(Tourist::getNationality, Collectors.counting()));
+        
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+        nationalityCount.forEach((nationality, count) -> 
+            pieChartData.add(new PieChart.Data(nationality, count)));
+        
+        nationalityChart.setData(pieChartData);
+        nationalityChart.setTitle("Tourist Nationality Distribution");
+    }
+    
+    private void updatePopularAttractionsChart() {
+        Map<String, Long> attractionCount = bookings.stream()
+            .collect(Collectors.groupingBy(
+                booking -> booking.getAttraction().getName(), 
+                Collectors.counting()));
+        
+        CategoryAxis xAxis = (CategoryAxis) popularAttractionsChart.getXAxis();
+        NumberAxis yAxis = (NumberAxis) popularAttractionsChart.getYAxis();
+        
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Bookings");
+        
+        attractionCount.forEach((attraction, count) -> 
+            series.getData().add(new XYChart.Data<>(attraction, count)));
+        
+        popularAttractionsChart.getData().clear();
+        popularAttractionsChart.getData().add(series);
+        popularAttractionsChart.setTitle("Most Popular Attractions");
+    }
+    
+    private void updateStatistics() {
+        double totalRevenue = 0.0;
+        double totalGuideCommissions = 0.0;
+        
+        for (Booking booking : bookings) {
+            if ("Confirmed".equals(booking.getStatus()) || "Completed".equals(booking.getStatus())) {
+                totalRevenue += booking.getTotalPrice();
+                
+                // Subtract guide commission if assigned
+                if (!booking.getGuideUsername().isEmpty()) {
+                    totalGuideCommissions += booking.getTotalPrice() * 0.30;
                 }
             }
-            FileHandler.saveAllTourists(allTourists);
-            
-            // Update dashboard info
-            dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-            
-            DialogUtils.showInfo("Success", "Cancelled booking deleted permanently!");
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            DialogUtils.showError("Error", "Failed to delete booking: " + e.getMessage());
         }
+        
+        double netRevenue = totalRevenue - totalGuideCommissions;
+        
+        totalRevenueLabel.setText("Net Revenue: $" + String.format("%.2f", netRevenue) + 
+            " (Total: $" + String.format("%.2f", totalRevenue) + 
+            ", Guide Commissions: $" + String.format("%.2f", totalGuideCommissions) + ")");
+        totalBookingsLabel.setText("Total Bookings: " + bookings.size());
+        totalTouristsLabel.setText("Total Tourists: " + FileHandler.loadTourists().size());
+        totalGuidesLabel.setText("Total Guides: " + guides.size());
+    }
+    
+    // Validation Methods
+    private boolean validateGuideFields() {
+        if (guideUsernameField.getText().trim().isEmpty() ||
+            guidePasswordField.getText().trim().isEmpty() ||
+            guideNameField.getText().trim().isEmpty() ||
+            guideEmailField.getText().trim().isEmpty() ||
+            guidePhoneField.getText().trim().isEmpty() ||
+            guideLanguagesField.getText().trim().isEmpty() ||
+            guideExperienceField.getText().trim().isEmpty()) {
+        
+        DialogUtils.showError("Error", "Please fill in all guide fields!");
+        return false;
+    }
+    
+    try {
+        Integer.parseInt(guideExperienceField.getText().trim());
+    } catch (NumberFormatException e) {
+        DialogUtils.showError("Error", "Please enter valid experience years!");
+        return false;
+    }
+    
+    return true;
+}
+
+private boolean validateAttractionFields() {
+    if (attractionNameField.getText().trim().isEmpty() ||
+        attractionLocationField.getText().trim().isEmpty() ||
+        attractionAltitudeCombo.getValue() == null ||
+        attractionDifficultyCombo.getValue() == null ||
+        attractionPriceField.getText().trim().isEmpty()) {
+        
+        DialogUtils.showError("Error", "Please fill in all attraction fields!");
+        return false;
+    }
+    
+    try {
+        Double.parseDouble(attractionPriceField.getText().trim());
+    } catch (NumberFormatException e) {
+        DialogUtils.showError("Error", "Please enter valid price!");
+        return false;
+    }
+    
+    return true;
+}
+    
+    // Utility Methods
+    private void clearGuideFields() {
+        guideUsernameField.clear();
+        guidePasswordField.clear();
+        guideNameField.clear();
+        guideEmailField.clear();
+        guidePhoneField.clear();
+        guideLanguagesField.clear();
+        guideExperienceField.clear();
+    }
+    
+    private void clearAttractionFields() {
+        attractionNameField.clear();
+        attractionLocationField.clear();
+        attractionAltitudeCombo.setValue(null);
+        attractionDifficultyCombo.setValue(null);
+        attractionPriceField.clear();
+    }
+    
+    @FXML
+    private void handleRefreshData() {
+        loadAllData();
+        updateAnalytics();
+        DialogUtils.showInfo("Success", "Data refreshed successfully!");
     }
     
     @FXML
@@ -583,20 +591,31 @@ public class TouristDashboardController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Scene scene = new Scene(loader.load());
-            
+        
             // Use the new scene switching method to maintain full screen
             Main.switchScene(scene, "Journey - Nepal Tourism System");
-            
+        
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
     
     private void updateLanguage() {
-        bookButton.setText(LanguageManager.getText("Book Now"));
-        updateBookingButton.setText(LanguageManager.getText("Update"));
-        cancelBookingButton.setText(LanguageManager.getText("Cancel"));
+        addGuideButton.setText(LanguageManager.getText("Add"));
+        updateGuideButton.setText(LanguageManager.getText("Update"));
+        deleteGuideButton.setText(LanguageManager.getText("Delete"));
+        addAttractionButton.setText(LanguageManager.getText("Add"));
+        updateAttractionButton.setText(LanguageManager.getText("Update"));
+        deleteAttractionButton.setText(LanguageManager.getText("Delete"));
+        assignGuideButton.setText(LanguageManager.getText("Assign Guide"));
+        updateBookingStatusButton.setText(LanguageManager.getText("Update Status"));
+        deleteBookingButton.setText(LanguageManager.getText("Delete"));
+        refreshDataButton.setText(LanguageManager.getText("Refresh"));
         logoutButton.setText(LanguageManager.getText("Logout"));
         languageToggleButton.setText(LanguageManager.getCurrentLanguage());
+    }
+    
+    private void showAlert(String title, String message) {
+        DialogUtils.showInfo(title, message);
     }
 }
