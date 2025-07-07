@@ -7,6 +7,16 @@
 
 <StackPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tourism.controllers.RegisterController" style="-fx-background-color: linear-gradient(to bottom, #2E8B57, #228B22);">
    <children>
+      <!-- Language Toggle Button - Top Right Corner -->
+      <HBox alignment="TOP_RIGHT" StackPane.alignment="TOP_RIGHT">
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+         <children>
+            <Button fx:id="languageToggleButton" onAction="#toggleLanguage" style="-fx-background-color: #4682B4; -fx-text-fill: white; -fx-background-radius: 15; -fx-pref-height: 35; -fx-font-weight: bold;" text="English" />
+         </children>
+      </HBox>
+      
       <!-- Main Content Container -->
       <ScrollPane fitToWidth="true" fitToHeight="true" style="-fx-background: transparent; -fx-background-color: transparent;" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
          <content>
@@ -21,7 +31,7 @@
                         <Insets bottom="40.0" left="50.0" right="50.0" top="40.0" />
                      </padding>
                      <children>
-                        <Label text="Create New Account - Journey" textAlignment="CENTER" textFill="#2E8B57">
+                        <Label fx:id="titleLabel" text="Create New Account - Journey" textAlignment="CENTER" textFill="#2E8B57">
                            <font>
                               <Font name="System Bold" size="28.0" />
                            </font>
@@ -35,19 +45,19 @@
                               <!-- Basic Information Section -->
                               <VBox spacing="20.0" style="-fx-background-color: #F0F8FF; -fx-padding: 25; -fx-background-radius: 15; -fx-border-color: #4682B4; -fx-border-width: 2; -fx-border-radius: 15;">
                                  <children>
-                                    <Label text="📋 Basic Information" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2F4F4F;" />
+                                    <Label fx:id="basicInfoLabel" text="📋 Basic Information" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2F4F4F;" />
                                     
                                     <HBox spacing="20.0">
                                        <children>
                                           <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                                              <children>
-                                                <Label text="Username *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
+                                                <Label fx:id="usernameLabel" text="Username *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
                                                 <TextField fx:id="usernameField" promptText="Enter unique username" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
                                              </children>
                                           </VBox>
                                           <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                                              <children>
-                                                <Label text="Password *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
+                                                <Label fx:id="passwordLabel" text="Password *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
                                                 <PasswordField fx:id="passwordField" promptText="Enter secure password" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
                                              </children>
                                           </VBox>
@@ -56,7 +66,7 @@
                                     
                                     <VBox spacing="8.0">
                                        <children>
-                                          <Label text="Full Name *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
+                                          <Label fx:id="fullNameLabel" text="Full Name *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
                                           <TextField fx:id="fullNameField" promptText="Enter your complete name" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
                                        </children>
                                     </VBox>
@@ -65,13 +75,13 @@
                                        <children>
                                           <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                                              <children>
-                                                <Label text="Email Address *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
+                                                <Label fx:id="emailLabel" text="Email Address *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
                                                 <TextField fx:id="emailField" promptText="your.email@example.com" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
                                              </children>
                                           </VBox>
                                           <VBox spacing="8.0" HBox.hgrow="ALWAYS">
                                              <children>
-                                                <Label text="Phone Number *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
+                                                <Label fx:id="phoneLabel" text="Phone Number *" style="-fx-font-weight: bold; -fx-text-fill: #2F4F4F;" />
                                                 <TextField fx:id="phoneField" promptText="+977-XXXXXXXXX" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
                                              </children>
                                           </VBox>
@@ -83,13 +93,13 @@
                               <!-- Role Selection Section -->
                               <VBox spacing="20.0" style="-fx-background-color: #FFF8DC; -fx-padding: 25; -fx-background-radius: 15; -fx-border-color: #DAA520; -fx-border-width: 2; -fx-border-radius: 15;">
                                  <children>
-                                    <Label text="👤 Account Type" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #8B4513;" />
+                                    <Label fx:id="accountTypeLabel" text="👤 Account Type" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #8B4513;" />
                                     
                                     <VBox spacing="8.0">
                                        <children>
-                                          <Label text="Select Your Role *" style="-fx-font-weight: bold; -fx-text-fill: #8B4513;" />
+                                          <Label fx:id="roleLabel" text="Select Your Role *" style="-fx-font-weight: bold; -fx-text-fill: #8B4513;" />
                                           <ComboBox fx:id="roleComboBox" prefWidth="300.0" promptText="Choose your account type" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
-                                          <Label text="Choose 'Tourist' if you want to book treks, or 'Guide' if you want to offer guiding services" style="-fx-font-size: 12px; -fx-text-fill: #8B4513; -fx-font-style: italic;" />
+                                          <Label fx:id="roleHelpLabel" text="Choose 'Tourist' if you want to book treks, or 'Guide' if you want to offer guiding services" style="-fx-font-size: 12px; -fx-text-fill: #8B4513; -fx-font-style: italic;" />
                                        </children>
                                     </VBox>
                                  </children>
@@ -107,7 +117,7 @@
                                              <children>
                                                 <Label fx:id="nationalityLabel" text="🌍 Nationality *" style="-fx-font-weight: bold; -fx-text-fill: #006400;" />
                                                 <TextField fx:id="nationalityField" promptText="e.g., Nepali, Indian, American, etc." style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
-                                                <Label text="Enter your country of citizenship" style="-fx-font-size: 12px; -fx-text-fill: #006400; -fx-font-style: italic;" />
+                                                <Label fx:id="nationalityHelpLabel" text="Enter your country of citizenship" style="-fx-font-size: 12px; -fx-text-fill: #006400; -fx-font-style: italic;" />
                                              </children>
                                           </VBox>
                                        </children>
@@ -120,7 +130,7 @@
                                              <children>
                                                 <Label fx:id="languagesLabel" text="🗣️ Languages Spoken *" style="-fx-font-weight: bold; -fx-text-fill: #006400;" />
                                                 <TextField fx:id="languagesField" promptText="English, Nepali, Hindi, Mandarin" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
-                                                <Label text="List all languages you can speak fluently (separate with commas)" style="-fx-font-size: 12px; -fx-text-fill: #006400; -fx-font-style: italic;" />
+                                                <Label fx:id="languagesHelpLabel" text="List all languages you can speak fluently (separate with commas)" style="-fx-font-size: 12px; -fx-text-fill: #006400; -fx-font-style: italic;" />
                                              </children>
                                           </VBox>
                                           
@@ -128,7 +138,7 @@
                                              <children>
                                                 <Label fx:id="experienceLabel" text="⭐ Years of Guiding Experience *" style="-fx-font-weight: bold; -fx-text-fill: #006400;" />
                                                 <TextField fx:id="experienceField" promptText="Enter number of years (0-50)" style="-fx-pref-height: 40; -fx-font-size: 14px; -fx-background-radius: 8;" />
-                                                <Label text="How many years have you been working as a tour guide?" style="-fx-font-size: 12px; -fx-text-fill: #006400; -fx-font-style: italic;" />
+                                                <Label fx:id="experienceHelpLabel" text="How many years have you been working as a tour guide?" style="-fx-font-size: 12px; -fx-text-fill: #006400; -fx-font-style: italic;" />
                                              </children>
                                           </VBox>
                                        </children>
@@ -154,8 +164,8 @@
                               <Insets top="20.0" />
                            </VBox.margin>
                            <children>
-                              <Label text="* Required fields" style="-fx-font-size: 12px; -fx-text-fill: #666; -fx-font-style: italic;" />
-                              <Label text="All information will be kept secure and confidential" style="-fx-font-size: 11px; -fx-text-fill: #888; -fx-font-style: italic;" />
+                              <Label fx:id="requiredFieldsLabel" text="* Required fields" style="-fx-font-size: 12px; -fx-text-fill: #666; -fx-font-style: italic;" />
+                              <Label fx:id="securityLabel" text="All information will be kept secure and confidential" style="-fx-font-size: 11px; -fx-text-fill: #888; -fx-font-style: italic;" />
                            </children>
                         </VBox>
                      </children>
