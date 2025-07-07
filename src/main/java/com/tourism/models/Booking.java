@@ -34,6 +34,36 @@ public class Booking {
         this.totalPrice = attraction.calculatePrice(festivalDiscountApplied);
     }
     
+    // Constructor with booking ID (for loading from file)
+    public Booking(int bookingId, String touristUsername, Attraction attraction, LocalDate trekDate) {
+        this.bookingId = bookingId;
+        this.touristUsername = touristUsername;
+        this.attraction = attraction;
+        this.bookingDate = LocalDate.now();
+        this.trekDate = trekDate;
+        this.status = "Pending";
+        this.guideUsername = "";
+        this.notes = "";
+        
+        // Update nextId to prevent conflicts
+        if (bookingId >= nextId) {
+            nextId = bookingId + 1;
+        }
+        
+        // Calculate price and check for festival discount
+        this.festivalDiscountApplied = isFestivalSeason(trekDate);
+        this.totalPrice = attraction.calculatePrice(festivalDiscountApplied);
+    }
+    
+    // Static method to set next ID (for loading from file)
+    public static void setNextId(int id) {
+        nextId = id;
+    }
+    
+    public static int getNextId() {
+        return nextId;
+    }
+    
     // Encapsulation - Getters and Setters
     public int getBookingId() { return bookingId; }
     
@@ -89,6 +119,10 @@ public class Booking {
     public boolean canBeModified() {
         return trekDate.isAfter(LocalDate.now().plusDays(3)) && 
                ("Confirmed".equals(status) || "Pending".equals(status));
+    }
+    
+    public boolean canBeDeleted() {
+        return "Cancelled".equals(status);
     }
     
     public void confirmBooking() {
