@@ -17,12 +17,25 @@ public class FileHandler {
         createDataDirectory();
         initializeDefaultAttractions();
         initializeDefaultGuides();
+        initializeBookingIdCounter();
     }
     
     private static void createDataDirectory() {
         File dataDir = new File(DATA_DIR);
         if (!dataDir.exists()) {
             dataDir.mkdirs();
+        }
+    }
+    
+    // Initialize booking ID counter from existing bookings
+    private static void initializeBookingIdCounter() {
+        List<Booking> existingBookings = loadBookings();
+        if (!existingBookings.isEmpty()) {
+            int maxId = existingBookings.stream()
+                .mapToInt(Booking::getBookingId)
+                .max()
+                .orElse(0);
+            Booking.setNextId(maxId + 1);
         }
     }
     
@@ -278,7 +291,11 @@ public class FileHandler {
                             .orElse(null);
                         
                         if (attraction != null) {
+                            // Parse booking ID to maintain consistency
+                            int bookingId = Integer.parseInt(data.get("Booking ID"));
+                            
                             Booking booking = new Booking(
+                                bookingId,
                                 data.get("Tourist"),
                                 attraction,
                                 LocalDate.parse(data.get("Trek Date"))
