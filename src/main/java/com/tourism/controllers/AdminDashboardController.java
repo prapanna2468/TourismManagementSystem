@@ -203,6 +203,10 @@ public class AdminDashboardController {
             selectedGuide.setPhone(guidePhoneField.getText().trim());
             selectedGuide.setExperienceYears(Integer.parseInt(guideExperienceField.getText().trim()));
             
+            // Save all guides to file
+            List<Guide> allGuides = new ArrayList<>(guides);
+            FileHandler.saveAllGuides(allGuides);
+            
             guidesTable.refresh();
             DialogUtils.showInfo("Success", "Guide updated successfully!");
             
@@ -221,6 +225,11 @@ public class AdminDashboardController {
         
         if (DialogUtils.showConfirmation("Confirm Deletion", "Are you sure you want to delete this guide?")) {
             guides.remove(selectedGuide);
+            
+            // Save updated guides list to file
+            List<Guide> allGuides = new ArrayList<>(guides);
+            FileHandler.saveAllGuides(allGuides);
+            
             DialogUtils.showInfo("Success", "Guide deleted successfully!");
         }
     }
@@ -352,8 +361,47 @@ public class AdminDashboardController {
             return;
         }
         
+        String oldStatus = selectedBooking.getStatus();
         selectedBooking.setStatus(newStatus);
+        
+        // Update guide earnings if status changed to/from confirmed/completed
+        if (!selectedBooking.getGuideUsername().isEmpty()) {
+            Guide assignedGuide = guides.stream()
+                .filter(g -> g.getUsername().equals(selectedBooking.getGuideUsername()))
+                .findFirst()
+                .orElse(null);
+                
+            if (assignedGuide != null) {
+                double commission = selectedBooking.getTotalPrice() * 0.30;
+                
+                // If changing from confirmed/completed to cancelled, remove earnings
+                if (("Confirmed".equals(oldStatus) || "Completed".equals(oldStatus)) && 
+                    "Cancelled".equals(newStatus)) {
+                    assignedGuide.setTotalEarnings(assignedGuide.getTotalEarnings() - commission);
+                }
+                // If changing from cancelled to confirmed/completed, add earnings
+                else if ("Cancelled".equals(oldStatus) && 
+                         ("Confirmed".equals(newStatus) || "Completed".equals(newStatus))) {
+                    assignedGuide.setTotalEarnings(assignedGuide.getTotalEarnings() + commission);
+                }
+            }
+        }
+        
+        // Save changes to files
+        try {
+            List<Booking> bookingList = new ArrayList<>(bookings);
+            List<Guide> guideList = new ArrayList<>(guides);
+            
+            FileHandler.saveAllBookings(bookingList);
+            FileHandler.saveAllGuides(guideList);
+        } catch (Exception e) {
+            System.err.println("Error saving booking status update: " + e.getMessage());
+        }
+        
         bookingsTable.refresh();
+        guidesTable.refresh();
+        updateAnalytics();
+        
         DialogUtils.showInfo("Success", "Booking status updated successfully!");
     }
     
@@ -378,6 +426,18 @@ public class AdminDashboardController {
             }
             
             bookings.remove(selectedBooking);
+            
+            // Save changes to files
+            try {
+                List<Booking> bookingList = new ArrayList<>(bookings);
+                List<Guide> guideList = new ArrayList<>(guides);
+                
+                FileHandler.saveAllBookings(bookingList);
+                FileHandler.saveAllGuides(guideList);
+            } catch (Exception e) {
+                System.err.println("Error saving booking deletion: " + e.getMessage());
+            }
+            
             updateAnalytics();
             DialogUtils.showInfo("Success", "Booking deleted successfully!");
         }
