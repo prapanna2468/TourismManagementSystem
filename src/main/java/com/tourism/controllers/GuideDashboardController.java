@@ -81,7 +81,7 @@ public class GuideDashboardController implements Initializable {
             System.out.println("Initializing guide dashboard for: " + currentUser.getFullName());
         
             // First load the latest guide data from file and recalculate earnings
-            recalculateGuideEarnings();
+            recalculateGuideEarningsAndBookings();
         
             // Display user info using polymorphism
             if (welcomeLabel != null) {
@@ -105,9 +105,6 @@ public class GuideDashboardController implements Initializable {
                 experienceLabel.setText("Experience: " + currentUser.getExperienceYears() + " years");
             }
         
-            // Load assigned bookings
-            loadAssignedBookings();
-        
             System.out.println("Guide dashboard initialized successfully");
             System.out.println("Final earnings display: $" + currentUser.getTotalEarnings());
             System.out.println("Assigned bookings count: " + (assignedBookings != null ? assignedBookings.size() : 0));
@@ -118,7 +115,7 @@ public class GuideDashboardController implements Initializable {
         }
     }
     
-    private void recalculateGuideEarnings() {
+    private void recalculateGuideEarningsAndBookings() {
         try {
             // Reset earnings to 0
             currentUser.setTotalEarnings(0.0);
@@ -126,28 +123,50 @@ public class GuideDashboardController implements Initializable {
             // Load all bookings and calculate earnings from confirmed/completed bookings only
             List<Booking> allBookings = FileHandler.loadBookings();
             double totalEarnings = 0.0;
+            int assignedBookingCount = 0;
+            
+            // CLEAR existing bookings to prevent duplicates
+            if (assignedBookings == null) {
+                assignedBookings = FXCollections.observableArrayList();
+            } else {
+                assignedBookings.clear();
+            }
             
             for (Booking booking : allBookings) {
-                if (booking.getGuideUsername().equals(currentUser.getUsername()) && 
-                    ("Confirmed".equals(booking.getStatus()) || "Completed".equals(booking.getStatus()))) {
-                    double commission = booking.getTotalPrice() * 0.30; // 30% commission
-                    totalEarnings += commission;
+                if (booking.getGuideUsername().equals(currentUser.getUsername())) {
+                    // Only add to assigned bookings if not cancelled
+                    if (!"Cancelled".equals(booking.getStatus())) {
+                        assignedBookings.add(booking);
+                        assignedBookingCount++;
+                    }
+                    
+                    // Only count earnings from confirmed/completed bookings
+                    if ("Confirmed".equals(booking.getStatus()) || "Completed".equals(booking.getStatus())) {
+                        double commission = booking.getTotalPrice() * 0.30; // 30% commission
+                        totalEarnings += commission;
+                    }
                 }
             }
             
             currentUser.setTotalEarnings(totalEarnings);
             
+            // Update table
+            if (upcomingTreksTable != null) {
+                upcomingTreksTable.setItems(assignedBookings);
+            }
+            
             // Save updated guide data
             List<Guide> allGuides = FileHandler.loadGuides();
             for (int i = 0; i < allGuides.size(); i++) {
                 if (allGuides.get(i).getUsername().equals(currentUser.getUsername())) {
-                    allGuides.set(i, currentUser);
+                    allGuides.get(i).setTotalEarnings(totalEarnings);
                     break;
                 }
             }
             FileHandler.saveAllGuides(allGuides);
             
             System.out.println("Recalculated guide earnings: $" + totalEarnings);
+            System.out.println("Active assigned bookings: " + assignedBookingCount);
             
         } catch (Exception e) {
             System.err.println("Error recalculating guide earnings: " + e.getMessage());
@@ -184,60 +203,6 @@ public class GuideDashboardController implements Initializable {
             }
         } catch (Exception e) {
             System.err.println("Error setting up table columns: " + e.getMessage());
-        }
-    }
-    
-    private void loadAssignedBookings() {
-        try {
-            if (currentUser == null) {
-                System.err.println("Cannot load bookings - current user is null");
-                return;
-            }
-        
-            List<Booking> allBookings = FileHandler.loadBookings();
-            
-            // CLEAR existing bookings to prevent duplicates
-            if (assignedBookings == null) {
-                assignedBookings = FXCollections.observableArrayList();
-            } else {
-                assignedBookings.clear(); // Clear existing bookings
-            }
-        
-            System.out.println("Loading bookings for guide: " + currentUser.getUsername());
-            System.out.println("Total bookings in system: " + allBookings.size());
-        
-            // Filter for active bookings only (not cancelled)
-            List<Booking> activeBookings = allBookings.stream()
-                .filter(booking -> booking.getGuideUsername() != null && 
-                                 booking.getGuideUsername().equals(currentUser.getUsername()) &&
-                                 !"Cancelled".equals(booking.getStatus()))
-                .collect(Collectors.toList());
-        
-            for (Booking booking : activeBookings) {
-                assignedBookings.add(booking);
-                System.out.println("✓ Added assigned booking: " + booking.getBookingId() + 
-                    " for " + booking.getAttraction().getName() + " - Status: " + booking.getStatus());
-            }
-        
-            if (upcomingTreksTable != null) {
-                upcomingTreksTable.setItems(assignedBookings);
-            }
-        
-            System.out.println("Loaded " + assignedBookings.size() + " active assigned bookings");
-        
-            // Update earnings display with latest data
-            if (earningsLabel != null) {
-                earningsLabel.setText("Total Earnings: $" + String.format("%.2f", currentUser.getTotalEarnings()));
-            }
-        
-            // Update dashboard info
-            if (dashboardInfoLabel != null) {
-                dashboardInfoLabel.setText(currentUser.getDashboardInfo());
-            }
-        
-        } catch (Exception e) {
-            System.err.println("Error loading assigned bookings: " + e.getMessage());
-            e.printStackTrace();
         }
     }
     
