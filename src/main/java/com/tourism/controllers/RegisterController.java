@@ -31,15 +31,33 @@ public class RegisterController {
     // Tourist fields
     @FXML private TextField nationalityField;
     @FXML private Label nationalityLabel;
+    @FXML private Label nationalityHelpLabel;
     
     // Guide fields
     @FXML private TextField languagesField;
     @FXML private TextField experienceField;
     @FXML private Label languagesLabel;
     @FXML private Label experienceLabel;
+    @FXML private Label languagesHelpLabel;
+    @FXML private Label experienceHelpLabel;
+    
+    // UI Labels for translation
+    @FXML private Label titleLabel;
+    @FXML private Label basicInfoLabel;
+    @FXML private Label usernameLabel;
+    @FXML private Label passwordLabel;
+    @FXML private Label fullNameLabel;
+    @FXML private Label emailLabel;
+    @FXML private Label phoneLabel;
+    @FXML private Label accountTypeLabel;
+    @FXML private Label roleLabel;
+    @FXML private Label roleHelpLabel;
+    @FXML private Label requiredFieldsLabel;
+    @FXML private Label securityLabel;
     
     @FXML private Button registerButton;
     @FXML private Button backButton;
+    @FXML private Button languageToggleButton;
     
     @FXML
     private void initialize() {
@@ -78,9 +96,9 @@ public class RegisterController {
         
         // Update section label
         if (isTourist) {
-            roleSpecificLabel.setText("Tourist Information");
+            roleSpecificLabel.setText(LanguageManager.getText("Additional Information"));
         } else if (isGuide) {
-            roleSpecificLabel.setText("Guide Information");
+            roleSpecificLabel.setText(LanguageManager.getText("Additional Information"));
         }
     }
     
@@ -238,11 +256,76 @@ public class RegisterController {
         }
     }
     
+    @FXML
+    private void toggleLanguage() {
+        LanguageManager.toggleLanguage();
+        updateLanguage();
+        updateFieldPrompts();
+        updateRoleComboBox();
+    }
+    
     private void updateLanguage() {
-        registerButton.setText(LanguageManager.getText("Register"));
-        backButton.setText(LanguageManager.getText("Back"));
-        nationalityLabel.setText(LanguageManager.getText("Nationality"));
-        languagesLabel.setText(LanguageManager.getText("Languages"));
-        experienceLabel.setText(LanguageManager.getText("Experience"));
+        // Update main labels
+        titleLabel.setText(LanguageManager.getText("Create New Account - Journey"));
+        basicInfoLabel.setText("📋 " + LanguageManager.getText("Basic Information"));
+        usernameLabel.setText(LanguageManager.getText("Username") + " *");
+        passwordLabel.setText(LanguageManager.getText("Password") + " *");
+        fullNameLabel.setText(LanguageManager.getText("Full Name") + " *");
+        emailLabel.setText(LanguageManager.getText("Email") + " *");
+        phoneLabel.setText(LanguageManager.getText("Phone") + " *");
+        accountTypeLabel.setText("👤 " + LanguageManager.getText("Account Type"));
+        roleLabel.setText(LanguageManager.getText("Role") + " *");
+        roleHelpLabel.setText(LanguageManager.getText("Choose 'Tourist' if you want to book treks, or 'Guide' if you want to offer guiding services"));
+        
+        // Update role-specific labels
+        nationalityLabel.setText("🌍 " + LanguageManager.getText("Nationality") + " *");
+        nationalityHelpLabel.setText(LanguageManager.getText("Enter your country of citizenship"));
+        languagesLabel.setText("🗣️ " + LanguageManager.getText("Languages") + " *");
+        languagesHelpLabel.setText(LanguageManager.getText("List all languages you can speak fluently (separate with commas)"));
+        experienceLabel.setText("⭐ " + LanguageManager.getText("Experience") + " *");
+        experienceHelpLabel.setText(LanguageManager.getText("How many years have you been working as a tour guide?"));
+        
+        // Update buttons
+        registerButton.setText(LanguageManager.getText("Create Account"));
+        backButton.setText(LanguageManager.getText("Back to Login"));
+        languageToggleButton.setText(LanguageManager.getCurrentLanguage());
+        
+        // Update footer labels
+        requiredFieldsLabel.setText("* " + LanguageManager.getText("Required fields"));
+        securityLabel.setText(LanguageManager.getText("All information will be kept secure and confidential"));
+    }
+    
+    private void updateFieldPrompts() {
+        // Update field prompts
+        usernameField.setPromptText(LanguageManager.getText("Enter unique username"));
+        passwordField.setPromptText(LanguageManager.getText("Enter secure password"));
+        fullNameField.setPromptText(LanguageManager.getText("Enter your complete name"));
+        emailField.setPromptText(LanguageManager.getText("your.email@example.com"));
+        phoneField.setPromptText(LanguageManager.getText("+977-XXXXXXXXX"));
+        roleComboBox.setPromptText(LanguageManager.getText("Choose your account type"));
+        nationalityField.setPromptText(LanguageManager.getText("e.g., Nepali, Indian, American, etc."));
+        languagesField.setPromptText(LanguageManager.getText("English, Nepali, Hindi, Mandarin"));
+        experienceField.setPromptText(LanguageManager.getText("Enter number of years (0-50)"));
+    }
+    
+    private void updateRoleComboBox() {
+        // Store current selection
+        String currentSelection = roleComboBox.getValue();
+        
+        // Clear and update items
+        roleComboBox.getItems().clear();
+        roleComboBox.getItems().addAll(
+            LanguageManager.getText("Tourist"),
+            LanguageManager.getText("Guide")
+        );
+        
+        // Restore selection if it was made
+        if (currentSelection != null) {
+            if ("Tourist".equals(currentSelection)) {
+                roleComboBox.setValue(LanguageManager.getText("Tourist"));
+            } else if ("Guide".equals(currentSelection)) {
+                roleComboBox.setValue(LanguageManager.getText("Guide"));
+            }
+        }
     }
 }
