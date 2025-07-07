@@ -490,21 +490,84 @@ public class TouristDashboardController {
         }
         
         if (!selectedBooking.canBeCancelled()) {
-            DialogUtils.showError("Error", "This booking cannot be cancelled!");
+            // Check if it's already cancelled and can be deleted
+            if (selectedBooking.canBeDeleted()) {
+                if (DialogUtils.showConfirmation("Delete Cancelled Booking", 
+                    "This booking is already cancelled. Do you want to delete it permanently?")) {
+                    deleteBooking(selectedBooking);
+                }
+                return;
+            }
+            
+            DialogUtils.showError("Error", "This booking cannot be cancelled! Bookings can only be cancelled at least 7 days before the trek date.");
             return;
         }
         
-        if (DialogUtils.showConfirmation("Confirm Cancellation", "Are you sure you want to cancel this booking?")) {
+        if (DialogUtils.showConfirmation("Confirm Cancellation", 
+            "Are you sure you want to cancel this booking?\n\nAfter cancellation, you can delete it permanently if needed.")) {
+            
             // Update tourist's spending before cancelling
             currentUser.removeBooking(selectedBooking);
             
             selectedBooking.cancelBooking();
-            bookingsTable.refresh();
             
-            // Update dashboard info to reflect new spending
+            // Save changes to file
+            List<Booking> allBookings = FileHandler.loadBookings();
+            for (int i = 0; i < allBookings.size(); i++) {
+                if (allBookings.get(i).getBookingId() == selectedBooking.getBookingId()) {
+                    allBookings.set(i, selectedBooking);
+                    break;
+                }
+            }
+            FileHandler.saveAllBookings(allBookings);
+            
+            // Update tourist data
+            List<Tourist> allTourists = FileHandler.loadTourists();
+            for (int i = 0; i < allTourists.size(); i++) {
+                if (allTourists.get(i).getUsername().equals(currentUser.getUsername())) {
+                    allTourists.set(i, currentUser);
+                    break;
+                }
+            }
+            FileHandler.saveAllTourists(allTourists);
+            
+            // Refresh UI
+            bookingsTable.refresh();
             dashboardInfoLabel.setText(currentUser.getDashboardInfo());
             
-            DialogUtils.showInfo("Success", "Booking cancelled successfully! Your total spending has been updated.");
+            DialogUtils.showInfo("Success", "Booking cancelled successfully!\n\nYour total spending has been updated.\nYou can now delete this cancelled booking if you wish.");
+        }
+    }
+    
+    private void deleteBooking(Booking booking) {
+        try {
+            // Remove from user's booking list
+            userBookings.remove(booking);
+            currentUser.removeBooking(booking);
+            
+            // Remove from all bookings file
+            List<Booking> allBookings = FileHandler.loadBookings();
+            allBookings.removeIf(b -> b.getBookingId() == booking.getBookingId());
+            FileHandler.saveAllBookings(allBookings);
+            
+            // Update tourist data
+            List<Tourist> allTourists = FileHandler.loadTourists();
+            for (int i = 0; i < allTourists.size(); i++) {
+                if (allTourists.get(i).getUsername().equals(currentUser.getUsername())) {
+                    allTourists.set(i, currentUser);
+                    break;
+                }
+            }
+            FileHandler.saveAllTourists(allTourists);
+            
+            // Update dashboard info
+            dashboardInfoLabel.setText(currentUser.getDashboardInfo());
+            
+            DialogUtils.showInfo("Success", "Cancelled booking deleted permanently!");
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            DialogUtils.showError("Error", "Failed to delete booking: " + e.getMessage());
         }
     }
     
